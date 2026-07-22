@@ -1,0 +1,204 @@
+/* ---- Desktop table (≥768px) ---- */
+.tableWrap {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  /* A genuinely wide table (many rate columns) scrolls inside its own box —
+     never clipped (overflow:hidden hid columns) and never pushing the page
+     into a horizontal scrollbar. */
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-surface-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Header alignment: .table th/td is more specific than .right, so target it. */
+.table th.right,
+.table td.right {
+  text-align: right;
+}
+
+/* sortable headers */
+.sortBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+}
+.sortBtnRight {
+  flex-direction: row-reverse;
+}
+/* The sort icon is always a blue circle badge (no hover rectangle). */
+.sortInd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+th[aria-sort='ascending'] .sortInd,
+th[aria-sort='descending'] .sortInd {
+  color: #fff;
+  background: var(--color-primary);
+}
+
+/* mobile sort bar (cards have no headers) */
+.sortBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.sortLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+}
+.sortSelect {
+  flex: 1;
+  font-family: var(--font-base);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  min-height: 40px;
+}
+.sortDir {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-primary);
+}
+.sortDir:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--color-text-subtle);
+}
+
+.clickableRow {
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.clickableRow:hover {
+  background: var(--color-primary-soft);
+}
+.clickableRow:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* ---- Mobile cards (<768px) ---- */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.card.clickable {
+  cursor: pointer;
+}
+.card.clickable:hover {
+  border-color: var(--color-border-strong);
+}
+.card.clickable:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+  line-height: 1.35;
+}
+
+.cardList {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cardRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cardLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-subtle);
+  margin: 0;
+  flex: none;
+}
+
+.cardValue {
+  margin: 0;
+  text-align: right;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  min-width: 0;
+}

@@ -1,0 +1,34 @@
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.seal {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  flex: none;
+  background: var(--gradient-dark);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.name {
+  font-size: var(--font-size-md);
+  line-height: 1.2;
+}

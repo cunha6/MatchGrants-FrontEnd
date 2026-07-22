@@ -1,0 +1,93 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  visibility: hidden;
+  pointer-events: none;
+}
+.root.open {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--color-overlay);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.open .overlay {
+  opacity: 1;
+}
+
+.panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(92vw, 440px);
+  /* Solid, fully opaque surface — the panel must stay readable over the page. */
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform var(--transition-slow);
+}
+.open .panel {
+  transform: translateX(0);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  /* Without this, positioned content further down the panel (e.g. Deadline's
+     relatively-positioned ring) paints over the sticky header on scroll. */
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.close {
+  flex: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-base);
+  padding: var(--space-1) var(--space-2);
+  line-height: 1;
+  border-radius: var(--radius-sm);
+}
+.close:hover {
+  color: var(--color-text);
+  background: var(--color-surface-3);
+}
+
+.body {
+  padding: var(--space-5);
+  flex: 1;
+}
+
+/* Keep a backdrop strip even on the smallest screens so tapping outside the
+   panel still closes it (never go full-bleed / 100vw). */
+@media (max-width: 479px) {
+  .panel {
+    width: 88vw;
+  }
+}

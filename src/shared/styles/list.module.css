@@ -1,0 +1,28 @@
+/* Shared helpers for list screens (avisos, anúncios, utilizadores). */
+.toolbar {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: var(--space-4);
+}
+.grow {
+  flex: 1 1 240px;
+}
+.shrink {
+  flex: 0 0 auto;
+  min-width: 200px;
+}
+
+.count {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+/* Dim + disable interaction while a background refetch is in flight. */
+.stale {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}

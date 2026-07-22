@@ -1,0 +1,84 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-height: 100%;
+}
+
+/* ---- Composite header title (grant name + MATCH badge) ---- */
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+}
+.titleText {
+  min-width: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+.badge {
+  flex: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  /* Display font (not mono): IBM Plex Mono renders a dotted zero, which looks
+     like specks inside "100%"/"0%". Space Grotesk has clean zeros. */
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.badge small {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.badge.ok {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.badge.mid {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+.badge.low {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+/* ---- Sections ---- */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+.text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+/* ---- Footer CTA ----
+   margin-top:auto pins the button to the bottom when the content is short,
+   and lets it sit at the end (no overlap, nothing hidden) when it's tall. */
+.footer {
+  margin-top: auto;
+  padding-top: var(--space-2);
+}

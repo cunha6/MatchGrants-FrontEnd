@@ -1,0 +1,137 @@
+.metricText {
+  font-size: var(--font-size-md);
+}
+
+.lots {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lot {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--color-surface);
+}
+
+.lotTag {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-sm);
+  padding: 6px 9px;
+  flex: none;
+  white-space: nowrap;
+}
+
+.lotInfo {
+  flex: 1;
+  min-width: 0;
+}
+  
+.lotTitle {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  line-height: 1.4;
+}
+
+.lotDesc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
+.lotMeta {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+.lotMeta b {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.docs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.docLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  transition:
+    border-color var(--transition),
+    background var(--transition),
+    transform var(--transition-fast);
+}
+.docLink:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+.docIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--color-secondary);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.icGov {
+  background: var(--color-primary);
+}
+.icDoc {
+  background: var(--color-danger);
+}
+.docText {
+  flex: 1;
+  min-width: 0;
+}
+.docTitle {
+  display: block;
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.docSub {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  overflow-wrap: anywhere;
+}
+.docArrow {
+  flex: none;
+  color: var(--color-text-subtle);
+}
+
+@media (max-width: 479px) {
+  .lot {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}

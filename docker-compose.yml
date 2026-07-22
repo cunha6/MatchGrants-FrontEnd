@@ -1,0 +1,22 @@
+# Production front-end: builds the SPA and serves it via nginx, which also
+# reverse-proxies /api to the Django backend (same-origin → session cookie works).
+#
+#   docker compose up --build        # → http://localhost:8080
+#
+# Point BACKEND_ORIGIN at your API (see .env.example):
+#   - http://host.docker.internal:8000  → Django running on your host
+#   - http://backend:8000               → a Django service on this network
+services:
+  frontend:
+    build:
+      context: .
+    image: matchgrants_front
+    container_name: matchgrants_front
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    environment:
+      BACKEND_ORIGIN: ${BACKEND_ORIGIN:-http://host.docker.internal:8000}
+    extra_hosts:
+      # Makes host.docker.internal resolve on Linux hosts too.
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

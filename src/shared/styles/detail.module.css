@@ -1,0 +1,55 @@
+/* Two-column detail layout (main content + sticky aside), shared by the
+   avisos and anúncios detail screens. */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+  text-decoration: none;
+}
+.back:hover {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.cols {
+  display: grid;
+  /* minmax(0, 1fr) — WITHOUT the 0 minimum, the 1fr track keeps its implicit
+     min-width:auto and refuses to shrink below its widest content (a wide
+     table, a long token…), which pushes the whole grid past the viewport and
+     forces a horizontal scrollbar. The 0 lets the column shrink so wide blocks
+     wrap or scroll inside their own box instead. */
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.aside {
+  position: sticky;
+  top: calc(var(--navbar-height) + var(--space-4));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.lead {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-relaxed);
+  white-space: pre-line;
+}
+
+.lead + .lead {
+  margin-top: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .cols {
+    grid-template-columns: 1fr;
+  }
+  .aside {
+    position: static;
+  }
+}
