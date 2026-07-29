@@ -30,19 +30,19 @@
   font-size: var(--font-size-xs);
   letter-spacing: var(--letter-spacing-wide);
   text-transform: uppercase;
-  color: #9fd0c0;
+  color: var(--color-accent);
   margin-bottom: var(--space-3);
 }
 
 .title {
   font-size: clamp(1.5rem, 3.2vw, 2rem);
   line-height: 1.16;
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .meta {
   margin-top: var(--space-4);
-  color: #b9c7de;
+  color: color-mix(in srgb, var(--color-text-inverse) 75%, transparent);
   font-size: var(--font-size-sm);
 }
 

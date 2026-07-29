@@ -8,3 +8,58 @@
   gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.section + .section {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.sectionTitle {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: var(--space-3);
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4) var(--space-6);
+}
+
+.field {
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  margin-bottom: var(--space-1);
+}
+
+.fieldValue {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  word-break: break-word;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+}
+
+@media (max-width: 479px) {
+  .fieldGrid {
+    grid-template-columns: 1fr;
+  }
+}

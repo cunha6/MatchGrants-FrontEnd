@@ -1,22 +1,29 @@
-import { api, type QueryParams } from '../../api/client'
+import { api, buildQuery, type QueryParams } from '../../api/client'
 import type {
   ImportSummary,
   Notice,
   NoticeEditResponse,
+  NoticeFilterOptions,
   NoticeListParams,
   NoticeListResponse,
 } from './types'
 
-/** GET /anuncios/ — public, enxuto. */
+/** GET /anuncios/list/ — public, enxuto. */
 export function listNotices(
   params: NoticeListParams,
   signal?: AbortSignal,
 ): Promise<NoticeListResponse> {
   return api.get<NoticeListResponse>(
-    '/anuncios/',
+    '/anuncios/list/',
     params as QueryParams,
     signal,
   )
+}
+
+/** GET /anuncios/filters/ — distinct act_type/contract_types values to
+ *  populate the list filters (only values that actually match something). */
+export function getNoticeFilters(signal?: AbortSignal): Promise<NoticeFilterOptions> {
+  return api.get<NoticeFilterOptions>('/anuncios/filters/', undefined, signal)
 }
 
 /** GET /anuncios/<id>/ — public, full detail. */
@@ -32,8 +39,8 @@ export function editNotice(
   return api.put<NoticeEditResponse>(`/anuncios/${id}/edit/`, changes)
 }
 
-/** POST /anuncios/importar/[<n>/] — open, slow. Imports last `days` days. */
+/** POST /anuncios/[?num_days=<n>] — open, slow. Imports last `days` days. */
 export function importNotices(days?: number): Promise<ImportSummary> {
-  const path = days ? `/anuncios/importar/${days}/` : '/anuncios/importar/'
+  const path = `/anuncios/${buildQuery(days ? { num_days: days } : undefined)}`
   return api.post<ImportSummary>(path)
 }

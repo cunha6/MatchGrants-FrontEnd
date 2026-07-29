@@ -66,6 +66,19 @@
   box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.5);
 }
 
+/* Vivid turquoise CTA — stands out against the dark hero. */
+.accent {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+.accent:hover {
+  background: color-mix(in srgb, var(--color-accent) 88%, #000);
+  box-shadow: 0 8px 18px -12px var(--color-accent);
+}
+.accent:active {
+  background: color-mix(in srgb, var(--color-accent) 78%, #000);
+}
+
 .danger {
   background: var(--color-danger);
   color: #fff;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { listGrants } from '../api'
 import type { GrantListItem } from '../types'
 import { useApiQuery } from '../../../shared/hooks/useApiQuery'
+import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue'
 import {
   ActiveBadge,
   type Column,
@@ -16,6 +17,7 @@ import {
   Select,
   type SortState,
 } from '../../../shared/components'
+import { ENTITY_SIZE_OPTIONS, type EntitySize } from '../../../shared/constants/domain'
 import {
   formatCurrency,
   formatDate,
@@ -84,12 +86,29 @@ export function AvisosList() {
   const navigate = useNavigate()
   const [active, setActive] = useState<'true' | 'false' | 'all'>('true')
   const [search, setSearch] = useState('')
+  const [cae, setCae] = useState('')
+  const [region, setRegion] = useState('')
+  const [dimension, setDimension] = useState<EntitySize | ''>('')
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState<SortState | null>(null)
+  const debouncedSearch = useDebouncedValue(search, 400)
+  const debouncedCae = useDebouncedValue(cae, 400)
+  const debouncedRegion = useDebouncedValue(region, 400)
 
+  // Everything below is applied server-side, over the whole table — not just
+  // the loaded page.
   const params = useMemo(
-    () => ({ active, page, page_size: PAGE_SIZE, order_by: orderByFor(sort) }),
-    [active, page, sort],
+    () => ({
+      active,
+      page,
+      page_size: PAGE_SIZE,
+      order_by: orderByFor(sort),
+      q: debouncedSearch.trim() || undefined,
+      cae: debouncedCae.trim() || undefined,
+      region: debouncedRegion.trim() || undefined,
+      dimension: dimension || undefined,
+    }),
+    [active, page, sort, debouncedSearch, debouncedCae, debouncedRegion, dimension],
   )
 
   const { data, loading, error, reload } = useApiQuery(
@@ -97,14 +116,8 @@ export function AvisosList() {
     [params],
   )
 
-  // Search only filters the rows already loaded for the current page — the
-  // API has no free-text search param, so it can't reach across pages.
-  const rows = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!data) return []
-    if (!q) return data.grants
-    return data.grants.filter((g) => g.grant_code.toLowerCase().includes(q))
-  }, [data, search])
+  const resetPage = () => setPage(1)
+  const hasFilters = Boolean(search || cae || region || dimension)
 
   return (
     <div>
@@ -113,19 +126,58 @@ export function AvisosList() {
       <div className={listStyles.toolbar}>
         <div className={listStyles.grow}>
           <Input
-            label="Pesquisar código"
+            label="Pesquisar (código / título)"
             placeholder="Ex.: ALGARVE-2026-5"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              resetPage()
+            }}
           />
         </div>
-        <div className={listStyles.shrink}>
+
+        <div className={listStyles.narrow}>
+          <Input
+            label="CAE elegível"
+            placeholder="Ex.: 55849"
+            value={cae}
+            onChange={(e) => {
+              setCae(e.target.value)
+              resetPage()
+            }}
+          />
+        </div>
+        <div className={listStyles.narrow}>
+          <Input
+            label="Região"
+            placeholder="Ex.: Norte, Porto, Algarve"
+            value={region}
+            onChange={(e) => {
+              setRegion(e.target.value)
+              resetPage()
+            }}
+          />
+        </div>
+        <div className={listStyles.narrow}>
+          <Select
+            label="Dimensão"
+            placeholder="Todas"
+            value={dimension}
+            onChange={(e) => {
+              setDimension(e.target.value as EntitySize | '')
+              resetPage()
+            }}
+            options={ENTITY_SIZE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+          />
+        </div>
+
+        <div className={listStyles.narrow}>
           <Select
             label="Estado"
             value={active}
             onChange={(e) => {
               setActive(e.target.value as typeof active)
-              setPage(1)
+              resetPage()
             }}
             options={[
               { value: 'true', label: 'Ativos' },
@@ -140,25 +192,25 @@ export function AvisosList() {
         <LoadingBlock message="A carregar avisos…" />
       ) : error ? (
         <ErrorState error={error} onRetry={reload} />
-      ) : rows.length > 0 ? (
+      ) : data && data.grants.length > 0 ? (
         <div className={loading ? listStyles.stale : undefined}>
           <DataTable
             columns={columns}
-            rows={rows}
+            rows={data.grants}
             rowKey={(g) => g.id}
             onRowClick={(g) => navigate(`/avisos/${g.id}`)}
             ariaLabel="Lista de avisos"
             sort={sort}
             onSortChange={(next) => {
               setSort(next)
-              setPage(1)
+              resetPage()
             }}
           />
           <Pagination
-            page={data!.page}
-            numPages={data!.num_pages}
-            total={data!.total}
-            pageSize={data!.page_size}
+            page={data.page}
+            numPages={data.num_pages}
+            total={data.total}
+            pageSize={data.page_size}
             onPage={setPage}
           />
         </div>
@@ -166,8 +218,8 @@ export function AvisosList() {
         <EmptyState
           title="Sem avisos"
           message={
-            search
-              ? 'Nenhum aviso corresponde à pesquisa nesta página.'
+            hasFilters
+              ? 'Nenhum aviso corresponde aos critérios.'
               : 'Nenhum aviso corresponde ao estado selecionado.'
           }
         />

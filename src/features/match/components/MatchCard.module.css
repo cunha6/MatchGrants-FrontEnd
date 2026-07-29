@@ -63,7 +63,8 @@
   display: block;
   height: 100%;
   border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, var(--color-primary), var(--color-info));
+  /* No text sits on this bar, so it can use the vivid turquoise accent. */
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   transition: width var(--transition-slow);
 }
 
@@ -94,6 +95,15 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-subtle);
   margin-top: 1px;
+}
+
+.llmReasonText {
+  margin: 0 0 var(--space-4);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--color-border);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
 }
 
 .elig {

@@ -4,7 +4,7 @@ import styles from './Button.module.css'
 import { cx } from '../utils/cx'
 import { Spinner } from './Spinner'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
+export type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'danger' | 'ghost'
 export type ButtonSize = 'sm' | 'md'
 
 interface CommonProps {

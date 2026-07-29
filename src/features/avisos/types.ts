@@ -19,7 +19,15 @@ export interface GrantListResponse {
 }
 
 export interface GrantListParams {
+  /** Server-side text search over grant_code and title. */
+  q?: string
   active?: 'true' | 'false' | 'all'
+  /** Eligible CAE — prefix rule (a "55***" entry matches any query under 55). */
+  cae?: string
+  /** Free text — matches eligible_regions or covered_areas. */
+  region?: string
+  /** micro | pequena | media | grande. CSV or repeated param = union. */
+  dimension?: string
   publication_from?: string
   publication_to?: string
   closing_from?: string
@@ -158,6 +166,10 @@ export interface CoveredArea {
 /** Full grant detail. Documented fields are typed; the well-known collections
  *  are typed too. Anything the backend adds beyond this is simply not rendered. */
 export interface Grant extends GrantListItem {
+  /** "scrape" = last write came from the scrape/AI pipeline; "manual" = a
+   *  human edit via /edit/ (last_updated_by then carries their username). */
+  last_update_source?: 'scrape' | 'manual'
+  last_updated_by?: string | null
   financing_program?: string | null
   managing_entity?: string | null
   publication_date?: string | null

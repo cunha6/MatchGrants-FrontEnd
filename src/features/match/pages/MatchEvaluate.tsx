@@ -34,8 +34,11 @@ const EMPTY = { nif: '', cae: '', region: '', dimension: '', entity_type: '' }
 
 export function MatchEvaluate() {
   const { hasRole } = useAuth()
-  const canPromote = hasRole('admin', 'commercial')
-  const canSeeCompany = hasRole('admin', 'composer')
+  const canPromote = hasRole('admin', 'commercial_grants', 'commercial_public')
+  const canSeeCompany = hasRole('admin', 'commercial_grants', 'commercial_public')
+  /** The LLM's concrete eligibility reasoning isn't shown to anonymous
+   *  visitors or viewers — only admin/commercial. */
+  const canSeeLlmReason = hasRole('admin', 'commercial_grants', 'commercial_public')
 
   const [form, setForm] = useState(EMPTY)
   const [loading, setLoading] = useState(false)
@@ -142,7 +145,7 @@ export function MatchEvaluate() {
               <Input
                 label="NIF"
                 inputMode="numeric"
-                placeholder="500829993"
+                placeholder="500000000"
                 value={form.nif}
                 onChange={set('nif')}
                 required
@@ -229,6 +232,7 @@ export function MatchEvaluate() {
                       key={m.opportunity_id}
                       match={m}
                       selected={panelOpen && selected?.opportunity_id === m.opportunity_id}
+                      showLlmReason={canSeeLlmReason}
                       onSelect={() => {
                         setSelected(m)
                         setPanelOpen(true)

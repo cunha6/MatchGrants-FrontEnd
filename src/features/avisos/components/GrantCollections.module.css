@@ -319,17 +319,19 @@ a.docLink:hover {
   opacity: 0.85;
 }
 
+/* Blue → turquoise ramp. Uses the darker accent tone so the white segment
+   labels stay legible across the whole ramp. */
 .seg0 {
   background: var(--color-primary);
 }
 .seg1 {
-  background: color-mix(in srgb, var(--color-primary) 65%, var(--color-info));
+  background: color-mix(in srgb, var(--color-primary) 60%, var(--color-accent-strong));
 }
 .seg2 {
-  background: color-mix(in srgb, var(--color-primary) 35%, var(--color-info));
+  background: color-mix(in srgb, var(--color-primary) 25%, var(--color-accent-strong));
 }
 .seg3 {
-  background: var(--color-info);
+  background: var(--color-accent-strong);
 }
 
 .evalNote {

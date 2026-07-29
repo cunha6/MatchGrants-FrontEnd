@@ -10,11 +10,17 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { to: '/avisos', label: 'Avisos' },
-  { to: '/anuncios', label: 'Anúncios' },
+  { to: '/avisos', label: 'Avisos', authOnly: true },
+  {
+    to: '/anuncios',
+    label: 'Contratações Publicas',
+    roles: ['admin', 'commercial_public', 'client', 'viewer'],
+  },
   { to: '/match', label: 'Match' },
-  { to: '/users', label: 'Utilizadores', roles: ['admin', 'commercial'] },
-  { to: '/ingestao', label: 'Scrape', roles: ['admin', 'commercial'] },
+  { to: '/plano-anual', label: 'Plano Anual', roles: ['admin', 'commercial_grants', 'commercial_public'] },
+  { to: '/newsletter', label: 'Newsletter', roles: ['admin', 'commercial_grants', 'commercial_public'] },
+  { to: '/users', label: 'Utilizadores', roles: ['admin', 'commercial_grants', 'commercial_public'] },
+  { to: '/ingestao', label: 'Scrape', roles: ['admin', 'commercial_grants', 'commercial_public'] },
 ]
 
 /** Filter nav items against the current user's role. */

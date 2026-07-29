@@ -49,6 +49,11 @@ export interface MatchItem {
   effective_budget_allocation: number | null
   eligibility: EligibilityItem[]
   breakdown: BreakdownItem[]
+  /** LLM-based adequacy check for the type of investment/project. */
+  llm_adequate: boolean | null
+  /** Concrete explanation of the eligible investment/project type when
+   *  `llm_adequate` is true (not a generic confirmation otherwise). */
+  llm_reason: string | null
 }
 
 export interface MatchResponse {

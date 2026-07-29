@@ -27,7 +27,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Aliados "a" brand mark in the bottom-right corner: large, bleeding a little
+   off the edge but still clearly reading as the "a". Fixed + z-index:-1 keeps
+   it behind all content (cards paint over it); it shows through the gaps. */
+body::before {
+  content: "";
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: min(50vw, 880px);
+  height: min(45vw, 880px);
+  background: url("/aliados_A71.png") no-repeat;
+  /* Pushed further right so a small sliver of the "a" bleeds off-screen. */
+  background-position: right bottom;
+  background-size: contain;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: -1;
+}
+
 #root {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

@@ -1,11 +1,11 @@
 import { Link, useParams } from 'react-router-dom'
 import { getNotice } from '../api'
 import type { Cpv, Lot } from '../types'
+import { NoticeStatusBadge } from '../components/NoticeStatusBadge'
 import { useAuth } from '../../auth/AuthContext'
 import { useApiQuery } from '../../../shared/hooks/useApiQuery'
 import { apiUrl } from '../../../api/client'
 import {
-  ActiveBadge,
   Badge,
   ButtonLink,
   Card,
@@ -65,7 +65,7 @@ export function AnuncioDetail() {
   const { id } = useParams<{ id: string }>()
   const noticeId = Number(id)
   const { hasRole } = useAuth()
-  const canEdit = hasRole('admin', 'commercial')
+  const canEdit = hasRole('admin', 'commercial_public')
 
   const { data: notice, loading, error, reload } = useApiQuery(
     (signal) => getNotice(noticeId, signal),
@@ -77,7 +77,7 @@ export function AnuncioDetail() {
     return (
       <div>
         <Link to="/anuncios" className={detail.back}>
-          ← Voltar aos anúncios
+          ← Voltar a Contratações Publicas
         </Link>
         <ErrorState error={error} onRetry={reload} />
       </div>
@@ -107,6 +107,15 @@ export function AnuncioDetail() {
       variant: 'doc',
     })
   }
+  // Same rule as the caderno: only shown when the backend found the file.
+  if (notice.program_url) {
+    documents.push({
+      label: 'Programa de Concurso',
+      sub: notice.program_path?.split('/').pop() ?? 'Abrir ficheiro',
+      url: apiUrl(notice.program_url),
+      variant: 'doc',
+    })
+  }
   if (notice.procedure_documents_url) {
     documents.push({
       label: 'Peças do procedimento',
@@ -124,14 +133,14 @@ export function AnuncioDetail() {
   return (
     <div>
       <Link to="/anuncios" className={detail.back}>
-        ← Voltar aos anúncios
+        ← Voltar a Contratações Publicas
       </Link>
 
       <DetailHero
         eyebrow={notice.act_type ?? 'Anúncio de contratação pública'}
         badges={
           <>
-            <ActiveBadge active={notice.active} />
+            <NoticeStatusBadge status={notice.status} />
             {notice.notice_number && (
               <Badge variant="primary">N.º {notice.notice_number}</Badge>
             )}
@@ -140,22 +149,34 @@ export function AnuncioDetail() {
         title={notice.entity_name}
         meta={notice.entity_nif ? `NIF ${notice.entity_nif}` : undefined}
         actions={
-          notice.specifications_url || canEdit ? (
+          notice.specifications_url || notice.program_url || canEdit ? (
             <>
               {notice.specifications_url && (
                 <ExternalLinkButton
                   href={apiUrl(notice.specifications_url)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  variant="accent"
                   size="sm"
                 >
                   Abrir caderno de encargos
                 </ExternalLinkButton>
               )}
+              {notice.program_url && (
+                <ExternalLinkButton
+                  href={apiUrl(notice.program_url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="accent"
+                  size="sm"
+                >
+                  Abrir programa de concurso
+                </ExternalLinkButton>
+              )}
               {canEdit && (
                 <ButtonLink
                   to={`/anuncios/${notice.id}/edit`}
-                  variant="secondary"
+                  variant="ghost"
                   size="sm"
                 >
                   Editar anúncio

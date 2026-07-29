@@ -12,6 +12,8 @@ import { AnunciosList } from '../features/anuncios/pages/AnunciosList'
 import { AnuncioDetail } from '../features/anuncios/pages/AnuncioDetail'
 import { AnuncioEdit } from '../features/anuncios/pages/AnuncioEdit'
 import { MatchEvaluate } from '../features/match/pages/MatchEvaluate'
+import { PlannedGrants } from '../features/newsletter/pages/PlannedGrants'
+import { Newsletter } from '../features/newsletter/pages/Newsletter'
 import { UsersList } from '../features/users/pages/UsersList'
 import { UserForm } from '../features/users/pages/UserForm'
 import { UserDetail } from '../features/users/pages/UserDetail'
@@ -27,17 +29,30 @@ export function AppRoutes() {
         {/* Public */}
         <Route path="login" element={<Login />} />
         <Route path="registar" element={<Register />} />
-        <Route path="avisos" element={<AvisosList />} />
         <Route path="avisos/:id" element={<AvisoDetail />} />
-        <Route path="anuncios" element={<AnunciosList />} />
-        <Route path="anuncios/:id" element={<AnuncioDetail />} />
         <Route path="match" element={<MatchEvaluate />} />
 
-        {/* Admin / commercial */}
+        {/* Admin / commercial_grants / commercial_public */}
+        <Route
+          path="plano-anual"
+          element={
+            <ProtectedRoute roles={['admin', 'commercial_grants', 'commercial_public']}>
+              <PlannedGrants />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="newsletter"
+          element={
+            <ProtectedRoute roles={['admin', 'commercial_grants', 'commercial_public']}>
+              <Newsletter />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="avisos/:id/edit"
           element={
-            <ProtectedRoute roles={['admin', 'commercial']}>
+            <ProtectedRoute roles={['admin', 'commercial_grants', 'commercial_public']}>
               <AvisoEdit />
             </ProtectedRoute>
           }
@@ -45,7 +60,7 @@ export function AppRoutes() {
         <Route
           path="anuncios/:id/edit"
           element={
-            <ProtectedRoute roles={['admin', 'commercial']}>
+            <ProtectedRoute roles={['admin', 'commercial_public']}>
               <AnuncioEdit />
             </ProtectedRoute>
           }
@@ -53,7 +68,7 @@ export function AppRoutes() {
         <Route
           path="users"
           element={
-            <ProtectedRoute roles={['admin', 'commercial']}>
+            <ProtectedRoute roles={['admin', 'commercial_grants', 'commercial_public']}>
               <UsersList />
             </ProtectedRoute>
           }
@@ -61,7 +76,7 @@ export function AppRoutes() {
         <Route
           path="users/new"
           element={
-            <ProtectedRoute roles={['admin', 'commercial']}>
+            <ProtectedRoute roles={['admin', 'commercial_grants', 'commercial_public']}>
               <UserForm mode="create" />
             </ProtectedRoute>
           }
@@ -69,7 +84,7 @@ export function AppRoutes() {
         <Route
           path="promover"
           element={
-            <ProtectedRoute roles={['admin', 'commercial']}>
+            <ProtectedRoute roles={['admin', 'commercial_grants', 'commercial_public']}>
               <Promote />
             </ProtectedRoute>
           }
@@ -77,13 +92,38 @@ export function AppRoutes() {
         <Route
           path="ingestao"
           element={
-            <ProtectedRoute roles={['admin', 'commercial']}>
+            <ProtectedRoute roles={['admin', 'commercial_grants', 'commercial_public']}>
               <Ingestion />
             </ProtectedRoute>
           }
         />
 
         {/* Any authenticated user (backend enforces record-level access) */}
+        <Route
+          path="avisos"
+          element={
+            <ProtectedRoute>
+              <AvisosList />
+            </ProtectedRoute>
+          }
+        />
+        {/* Everyone except commercial_grants — Contratações Públicas isn't their domain */}
+        <Route
+          path="anuncios"
+          element={
+            <ProtectedRoute roles={['admin', 'commercial_public', 'client', 'viewer']}>
+              <AnunciosList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="anuncios/:id"
+          element={
+            <ProtectedRoute roles={['admin', 'commercial_public', 'client', 'viewer']}>
+              <AnuncioDetail />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="users/:id"
           element={

@@ -84,6 +84,7 @@
 .name {
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-base);
+  color: var(--color-primary);
 }
 .role {
   font-size: var(--font-size-xs);

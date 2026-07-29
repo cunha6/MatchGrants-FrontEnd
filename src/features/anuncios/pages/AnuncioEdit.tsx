@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { editNotice, getNotice } from '../api'
 import type { Notice } from '../types'
+import { NOTICE_STATUS_LABELS } from '../../../shared/constants/domain'
 import { useApiQuery } from '../../../shared/hooks/useApiQuery'
 import {
   Alert,
@@ -28,9 +29,10 @@ import detail from '../../../shared/styles/detail.module.css'
  * - list: an array of strings — one per line, trimmed, empties dropped.
  *   (contract_types / cpvs / lots come back as plain string arrays.)
  * - bool: a true/false select.
+ * - status: the active/inactive/to_fix select.
  * `id` and the derived `specifications_url` are not editable.
  */
-type FieldKind = 'text' | 'textarea' | 'number' | 'date' | 'list' | 'bool'
+type FieldKind = 'text' | 'textarea' | 'number' | 'date' | 'list' | 'bool' | 'status'
 interface FieldDef {
   key: keyof Notice
   label: string
@@ -75,8 +77,13 @@ const FIELDS: FieldDef[] = [
     kind: 'bool',
     section: 'Estado',
   },
-  { key: 'active', label: 'Estado', kind: 'bool' },
+  { key: 'status', label: 'Estado', kind: 'status' },
 ]
+
+const STATUS_OPTIONS = Object.entries(NOTICE_STATUS_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}))
 
 /** Split a textarea's lines into trimmed, non-empty items. */
 function linesOf(text: string): string[] {
@@ -91,7 +98,7 @@ function toInitial(notice: Notice): Record<string, string> {
   for (const f of FIELDS) {
     const raw = notice[f.key]
     if (raw == null) {
-      out[f.key as string] = f.kind === 'bool' ? 'false' : ''
+      out[f.key as string] = f.kind === 'bool' ? 'false' : f.kind === 'status' ? 'active' : ''
     } else if (f.kind === 'date') {
       out[f.key as string] = String(raw).slice(0, 10)
     } else if (f.kind === 'bool') {
@@ -226,19 +233,14 @@ function EditForm({ notice }: { notice: Notice }) {
               control = (
                 <Select
                   {...common}
-                  options={
-                    f.key === 'active'
-                      ? [
-                          { value: 'true', label: 'Ativo' },
-                          { value: 'false', label: 'Inativo' },
-                        ]
-                      : [
-                          { value: 'true', label: 'Sim' },
-                          { value: 'false', label: 'Não' },
-                        ]
-                  }
+                  options={[
+                    { value: 'true', label: 'Sim' },
+                    { value: 'false', label: 'Não' },
+                  ]}
                 />
               )
+            } else if (f.kind === 'status') {
+              control = <Select {...common} options={STATUS_OPTIONS} />
             } else {
               control = (
                 <Input

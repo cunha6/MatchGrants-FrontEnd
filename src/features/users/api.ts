@@ -8,7 +8,7 @@ import type {
   UserUpdatePayload,
 } from './types'
 
-/** GET /users/ — paginated list (admin / commercial). */
+/** GET /users/ — paginated list (admin / commercial_grants / commercial_public). */
 export function listUsers(
   params: UsersListParams,
   signal?: AbortSignal,
@@ -16,7 +16,8 @@ export function listUsers(
   return api.get<UsersListResponse>('/users/', params as QueryParams, signal)
 }
 
-/** GET /users/<id>/ */
+/** GET /users/<id>/ — admin, self, or commercial_grants/commercial_public
+ *  when the target is a viewer/client. */
 export function getUser(id: number, signal?: AbortSignal): Promise<User> {
   return api.get<User>(`/users/${id}/`, undefined, signal)
 }
@@ -26,7 +27,8 @@ export function createUser(payload: UserCreatePayload): Promise<User> {
   return api.post<User>('/users/create/', payload)
 }
 
-/** PUT /users/<id>/update/ */
+/** PUT /users/<id>/update/ — admin, self, or commercial_grants/commercial_public
+ *  when the target is a viewer/client. */
 export function updateUser(
   id: number,
   payload: UserUpdatePayload,
@@ -34,7 +36,8 @@ export function updateUser(
   return api.put<User>(`/users/${id}/update/`, payload)
 }
 
-/** POST /users/<id>/password/ */
+/** POST /users/<id>/password/ — admin, self, or commercial_grants/commercial_public
+ *  when the target is a viewer/client. */
 export function changePassword(
   id: number,
   payload: PasswordChangePayload,
@@ -42,7 +45,8 @@ export function changePassword(
   return api.post(`/users/${id}/password/`, payload)
 }
 
-/** POST /users/<id>/activate/ — admin re-activates a soft-deleted user. */
+/** POST /users/<id>/activate/ — re-activates a soft-deleted user. Admin, or
+ *  commercial_grants/commercial_public when the target is a viewer/client. */
 export function activateUser(id: number): Promise<unknown> {
   return api.post(`/users/${id}/activate/`)
 }

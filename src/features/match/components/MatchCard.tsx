@@ -8,9 +8,17 @@ interface MatchCardProps {
   match: MatchItem
   selected?: boolean
   onSelect?: () => void
+  /** Admin / commercial only — the LLM's concrete eligibility reasoning
+   *  isn't shown to anonymous visitors or viewers. */
+  showLlmReason?: boolean
 }
 
-export function MatchCard({ match, selected = false, onSelect }: MatchCardProps) {
+export function MatchCard({
+  match,
+  selected = false,
+  onSelect,
+  showLlmReason = false,
+}: MatchCardProps) {
   const pct =
     match.max_score > 0
       ? Math.round((match.score / match.max_score) * 100)
@@ -49,6 +57,10 @@ export function MatchCard({ match, selected = false, onSelect }: MatchCardProps)
           <span>/ {match.max_score}</span>
         </div>
       </div>
+
+      {showLlmReason && match.llm_adequate && match.llm_reason && (
+        <p className={styles.llmReasonText}>{match.llm_reason}</p>
+      )}
 
       <div
         className={styles.bar}

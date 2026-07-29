@@ -2,7 +2,9 @@
   position: sticky;
   top: var(--navbar-height);
   z-index: calc(var(--z-nav) - 5);
-  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  /* Transparent bar — the blur keeps the links legible over content that
+     scrolls underneath without painting a solid background. */
+  background: transparent;
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--color-border);
   margin-bottom: var(--space-5);

@@ -6,28 +6,38 @@
    values in this file — nothing else. No component may hardcode a colour, size
    or spacing value; they all reference these `var(--…)` tokens.
 
-   The palette and typography were extracted from the two reference mock-ups
-   (the "avisos" pages): a deep-navy ink, a confident blue brand, an ember
-   accent, a green success and mono labels.
+   Aliados brand palette: a deep confident blue (#0312c2) for brand + text, a
+   fresh turquoise (#5cd9ba) for highlights/accents, over a soft blue-white
+   background (#ebf5fc). Everything else (surfaces, borders, muted text) is
+   derived from these three so the whole app reads as one system.
    ============================================================================= */
 :root {
-  /* ---- Brand / primary ------------------------------------------------- */
-  --color-primary: #1a56d6;
-  --color-primary-hover: #1546b0;
-  --color-primary-active: #123c96;
-  --color-primary-soft: #eaf0fe;
+  /* ---- Brand / primary (Aliados blue — used for actions, links, accents) */
+  --color-primary: #0312c2;
+  --color-primary-hover: #020ea0;
+  --color-primary-active: #02097a;
+  --color-primary-soft: #dee2fb;
+
+  /* ---- Accent / highlight (turquoise) ---------------------------------- */
+  /* Vivid tone for fills, bars, primary CTAs (large areas / dark-text). */
+  --color-accent: #5cd9ba;
+  /* Darkened tone that stays legible as text/icons on a light background. */
+  --color-accent-strong: #12866c;
+  --color-accent-soft: #dcf5ee;
+  /* Ink used on top of the vivid accent (buttons/fills). */
+  --color-accent-ink: #052b22;
 
   /* ---- Secondary (deep navy — hero / dark surfaces) -------------------- */
   --color-secondary: #0e1b2e;
   --color-secondary-2: #1c3050;
 
   /* ---- Surfaces & background ------------------------------------------- */
-  --color-bg: #f6f8fb;
+  --color-bg: #ebf5fc;
   --color-surface: #ffffff;
   --color-surface-2: #fbfcfe;
   --color-surface-3: #f2f6ff;
 
-  /* ---- Text ------------------------------------------------------------ */
+  /* ---- Text (neutral ink) ---------------------------------------------- */
   --color-text: #0e1b2e;
   --color-text-muted: #48566b;
   --color-text-subtle: #6b7789;
@@ -44,19 +54,20 @@
   --color-danger-soft: #fdece5;
   --color-warning: #c98a12;
   --color-warning-soft: #fbf3e0;
-  --color-info: #6b4de0;
-  --color-info-soft: #efeafe;
+  /* "info" is the turquoise accent in a text-safe (darker) tone. */
+  --color-info: #12866c;
+  --color-info-soft: #dcf5ee;
 
   /* Overlay for modals / drawers */
   --color-overlay: rgba(14, 27, 46, 0.5);
 
-  /* Signature dark gradient used by the hero and "apply" panels */
+  /* Detail hero block — the Aliados blue (#0312c2) with a subtle turquoise glow. */
   --gradient-hero: radial-gradient(
       1100px 420px at 88% -20%,
-      rgba(26, 86, 214, 0.12),
+      rgba(92, 217, 186, 0.18),
       transparent 60%
     ),
-    linear-gradient(180deg, #0e1b2e 0%, #14263f 100%);
+    linear-gradient(160deg, #0312c2 0%, #020e9c 100%);
   --gradient-dark: linear-gradient(135deg, #0e1b2e, #1c3050);
 
   /* ---- Typography ------------------------------------------------------ */

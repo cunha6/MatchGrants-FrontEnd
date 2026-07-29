@@ -86,7 +86,7 @@ export function AvisoDetail() {
   const { id } = useParams<{ id: string }>()
   const grantId = Number(id)
   const { hasRole } = useAuth()
-  const canEdit = hasRole('admin', 'commercial')
+  const canEdit = hasRole('admin', 'commercial_grants', 'commercial_public')
   const location = useLocation()
 
   // Success message handed over by the edit page after a save.
@@ -226,13 +226,14 @@ export function AvisoDetail() {
                   href={apiUrl(grant.document_url)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  variant="accent"
                   size="sm"
                 >
                   Abrir aviso (PDF)
                 </ExternalLinkButton>
               )}
               {canEdit && (
-                <ButtonLink to={`/avisos/${grant.id}/edit`} variant="secondary" size="sm">
+                <ButtonLink to={`/avisos/${grant.id}/edit`} variant="ghost" size="sm">
                   Editar aviso
                 </ButtonLink>
               )}
@@ -504,7 +505,7 @@ export function AvisoDetail() {
             </Card>
           )}
           {canEdit && (
-            <ButtonLink to={`/avisos/${grant.id}/edit`} variant="secondary" fullWidth>
+            <ButtonLink to={`/avisos/${grant.id}/edit`} variant="primary" fullWidth>
               Editar aviso
             </ButtonLink>
           )}

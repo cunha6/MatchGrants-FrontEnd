@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { scrapeGrants, type ScrapeSource } from '../../avisos/api'
 import { importNotices } from '../../anuncios/api'
+import { useAuth } from '../../auth/AuthContext'
 import {
   Alert,
   Button,
@@ -15,6 +16,15 @@ import type { DescriptionItem } from '../../../shared/components'
 import { humanizeKey } from '../../../shared/utils/collections'
 import { ApiError } from '../../../api/client'
 import styles from './Ingestion.module.css'
+
+/** Only sources actually wired up on the backend are listed; the rest stay
+ *  commented until they're ready. The first entry is the default. */
+const SOURCE_OPTIONS: { value: ScrapeSource; label: string }[] = [
+  /*{ value: 'all', label: 'Todas as fontes' },
+  { value: 'compete', label: 'Compete 2030' },*/
+  { value: 'portugal', label: 'Portugal 2030' },
+  /*{ value: 'prr', label: 'PRR' },*/
+]
 
 function summaryRows(result: unknown): DescriptionItem[] {
   if (!result || typeof result !== 'object') return []
@@ -92,7 +102,11 @@ function TaskCard({
 }
 
 export function Ingestion() {
-  const [source, setSource] = useState<ScrapeSource>('all')
+  const { hasRole } = useAuth()
+  /** commercial_grants only sees the avisos scrape; commercial_public
+   *  (and admin) also get the anúncios import. */
+  const canImportNotices = hasRole('admin', 'commercial_public')
+  const [source, setSource] = useState<ScrapeSource>(SOURCE_OPTIONS[0].value)
   const [days, setDays] = useState('15')
 
   return (
@@ -117,33 +131,30 @@ export function Ingestion() {
               label="Fonte"
               value={source}
               onChange={(e) => setSource(e.target.value as ScrapeSource)}
-              options={[
-                /*{ value: 'all', label: 'Todas as fontes' },
-                { value: 'compete', label: 'Compete 2030' },*/
-                { value: 'portugal', label: 'Portugal 2030' },
-                /*{ value: 'prr', label: 'PRR' },*/
-              ]}
+              options={SOURCE_OPTIONS}
             />
           }
           actionLabel="Iniciar recolha"
           run={() => scrapeGrants(source)}
         />
 
-        <TaskCard
-          title="Anúncios — importação"
-          description="Importa anúncios de contratação pública dos últimos N dias (base.gov.pt)."
-          controls={
-            <Input
-              label="Dias"
-              type="number"
-              min={1}
-              value={days}
-              onChange={(e) => setDays(e.target.value)}
-            />
-          }
-          actionLabel="Importar anúncios"
-          run={() => importNotices(days ? Number(days) : undefined)}
-        />
+        {canImportNotices && (
+          <TaskCard
+            title="Contratações Publicas — importação"
+            description="Importa Contratações Publicas de contratação pública dos últimos N dias (base.gov.pt)."
+            controls={
+              <Input
+                label="Dias"
+                type="number"
+                min={1}
+                value={days}
+                onChange={(e) => setDays(e.target.value)}
+              />
+            }
+            actionLabel="Importar Contratações Publicas"
+            run={() => importNotices(days ? Number(days) : undefined)}
+          />
+        )}
       </div>
     </div>
   )

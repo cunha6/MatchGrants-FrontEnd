@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { activateUser, changePassword, deleteUser, getUser } from '../api'
 import { useAuth } from '../../auth/AuthContext'
@@ -10,7 +10,6 @@ import {
   Button,
   ButtonLink,
   Card,
-  DescriptionList,
   ErrorState,
   Input,
   LoadingBlock,
@@ -25,14 +24,45 @@ import {
 } from '../../../shared/constants/domain'
 import { formatDate, orDash } from '../../../shared/utils/format'
 import { ApiError } from '../../../api/client'
+import { cx } from '../../../shared/utils/cx'
 import detail from '../../../shared/styles/detail.module.css'
 import styles from './UserDetail.module.css'
+
+interface FieldProps {
+  label: string
+  value: ReactNode
+  mono?: boolean
+}
+
+function Field({ label, value, mono }: FieldProps) {
+  return (
+    <div className={styles.field}>
+      <div className={styles.fieldLabel}>{label}</div>
+      <div className={cx(styles.fieldValue, mono && styles.mono)}>{value}</div>
+    </div>
+  )
+}
+
+interface ProfileSectionProps {
+  title: string
+  children: ReactNode
+}
+
+function ProfileSection({ title, children }: ProfileSectionProps) {
+  return (
+    <div className={styles.section}>
+      <h3 className={styles.sectionTitle}>{title}</h3>
+      <div className={styles.fieldGrid}>{children}</div>
+    </div>
+  )
+}
 
 export function UserDetail() {
   const { id } = useParams<{ id: string }>()
   const userId = Number(id)
   const { user: currentUser, hasRole } = useAuth()
   const isAdmin = hasRole('admin')
+  const isManager = hasRole('commercial_grants', 'commercial_public')
   const isSelf = currentUser?.id === userId
 
   const { data: user, loading, error, reload } = useApiQuery(
@@ -44,8 +74,15 @@ export function UserDetail() {
   const [pwOpen, setPwOpen] = useState(false)
   const [delOpen, setDelOpen] = useState(false)
 
-  const canEdit = isSelf || isAdmin
-  const canManage = isAdmin
+  /** admin manages anyone; commercial_grants/commercial_public only manage
+   *  viewer/client targets (matches the API's /users/<id>/ author check). */
+  const canManageTarget =
+    isAdmin || (isManager && (user?.role === 'viewer' || user?.role === 'client'))
+  const canEdit = isSelf || canManageTarget
+  /** Only /activate/ is open to commercial_grants/commercial_public; the
+   *  deactivate (DELETE) endpoint stays admin-only. */
+  const canActivate = canManageTarget
+  const canDeactivate = isAdmin
 
   const act = async (fn: () => Promise<unknown>, okText: string) => {
     try {
@@ -93,12 +130,12 @@ export function UserDetail() {
                 Editar
               </ButtonLink>
             )}
-            {(isSelf || isAdmin) && (
+            {(isSelf || canManageTarget) && (
               <Button variant="ghost" onClick={() => setPwOpen(true)}>
-                {isAdmin && !isSelf ? 'Repor palavra-passe' : 'Alterar palavra-passe'}
+                {canManageTarget && !isSelf ? 'Repor palavra-passe' : 'Alterar palavra-passe'}
               </Button>
             )}
-            {canManage && !user.is_active && (
+            {canActivate && !user.is_active && (
               <Button
                 variant="secondary"
                 onClick={() => act(() => activateUser(user.id), 'Utilizador ativado.')}
@@ -106,7 +143,7 @@ export function UserDetail() {
                 Ativar
               </Button>
             )}
-            {canManage && user.is_active && (
+            {canDeactivate && user.is_active && (
               <Button variant="danger" onClick={() => setDelOpen(true)}>
                 Desativar
               </Button>
@@ -133,24 +170,40 @@ export function UserDetail() {
       </div>
 
       <Card>
-        <DescriptionList
-          items={[
-            { label: 'ID', value: `#${user.id}`, mono: true },
-            { label: 'Email', value: orDash(user.email) },
-            { label: 'Papel', value: ROLE_LABELS[user.role] ?? user.role },
-            { label: 'NIF', value: orDash(user.nif), mono: true },
-            { label: 'Tipo de entidade', value: labelFor(ENTITY_TYPE_LABELS, user.entity_type) },
-            { label: 'Dimensão', value: labelFor(ENTITY_SIZE_LABELS, user.entity_size) },
-            { label: 'CAE principal', value: orDash(user.main_cae) },
-            { label: 'CAE secundário', value: orDash(user.secondary_cae) },
-            { label: 'Morada', value: orDash(user.address) },
-            { label: 'Região', value: orDash(user.region) },
-            { label: 'NUTS II', value: orDash(user.nuts_ii) },
-            { label: 'NUTS III', value: orDash(user.nuts_iii) },
-            { label: 'Data de constituição', value: formatDate(user.incorporation_date) },
-            { label: 'Registo', value: formatDate(user.date_joined) },
-          ]}
-        />
+        <div className={styles.profile}>
+          <ProfileSection title="Conta">
+            <Field label="Email" value={orDash(user.email)} />
+            <Field label="Papel" value={ROLE_LABELS[user.role] ?? user.role} />
+            <Field label="ID" value={`#${user.id}`} mono />
+            <Field label="NIF" value={orDash(user.nif)} mono />
+          </ProfileSection>
+
+          <ProfileSection title="Entidade">
+            <Field
+              label="Tipo de entidade"
+              value={labelFor(ENTITY_TYPE_LABELS, user.entity_type)}
+            />
+            <Field label="Dimensão" value={labelFor(ENTITY_SIZE_LABELS, user.entity_size)} />
+            <Field label="CAE principal" value={orDash(user.main_cae)} />
+            <Field label="CAE secundário" value={orDash(user.secondary_cae)} />
+          </ProfileSection>
+
+          <ProfileSection title="Localização">
+            <Field label="Morada" value={orDash(user.address)} />
+            <Field label="Região" value={orDash(user.region)} />
+            <Field label="NUTS II" value={orDash(user.nuts_ii)} />
+            <Field label="NUTS III" value={orDash(user.nuts_iii)} />
+          </ProfileSection>
+
+          <ProfileSection title="Datas">
+            <Field
+              label="Data de constituição"
+              value={formatDate(user.incorporation_date)}
+              mono
+            />
+            <Field label="Registo" value={formatDate(user.date_joined)} mono />
+          </ProfileSection>
+        </div>
       </Card>
 
       <PasswordModal

@@ -59,7 +59,7 @@ export function Promote() {
           <Input
             label="NIF"
             inputMode="numeric"
-            placeholder="500829993"
+            placeholder="500000000"
             value={nif}
             onChange={(e) => setNif(e.target.value)}
             required

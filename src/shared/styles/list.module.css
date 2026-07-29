@@ -13,6 +13,12 @@
   flex: 0 0 auto;
   min-width: 200px;
 }
+/** Compact filter (short code/select) — several fit on one line alongside search. */
+.narrow {
+  flex: 0 0 auto;
+  min-width: 130px;
+  max-width: 160px;
+}
 
 .count {
   font-size: var(--font-size-sm);

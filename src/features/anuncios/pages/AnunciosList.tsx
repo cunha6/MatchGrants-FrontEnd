@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { listNotices } from '../api'
+import { getNoticeFilters, listNotices } from '../api'
 import type { NoticeListItem } from '../types'
+import { NoticeStatusBadge } from '../components/NoticeStatusBadge'
 import { useApiQuery } from '../../../shared/hooks/useApiQuery'
+import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue'
 import {
-  ActiveBadge,
   type Column,
   DataTable,
   EmptyState,
@@ -13,10 +14,17 @@ import {
   LoadingBlock,
   PageHeader,
   Pagination,
+  Select,
   type SortState,
 } from '../../../shared/components'
 import { formatCurrency, formatDate, orDash } from '../../../shared/utils/format'
 import listStyles from '../../../shared/styles/list.module.css'
+
+/** Dedupe + sort — the API's act_types come back with repeats (one per
+ *  matching anúncio), contract_types don't; sorting either way is harmless. */
+function uniqueSorted(values: string[]): string[] {
+  return [...new Set(values)].sort((a, b) => a.localeCompare(b, 'pt'))
+}
 
 const PAGE_SIZE = 20
 
@@ -35,13 +43,8 @@ function orderByFor(sort: SortState | null): string | undefined {
 }
 
 const columns: Column<NoticeListItem>[] = [
-  {
-    key: 'notice_number',
-    header: 'N.º anúncio',
-    render: (n) => <span className="mono">{n.notice_number}</span>,
-  },
   { key: 'entity_name', header: 'Entidade', primary: true, render: (n) => n.entity_name },
-  { key: 'act_type', header: 'Tipo de ato', render: (n) => orDash(n.act_type) },
+  { key: 'description', header: 'Descrição', render: (n) => orDash(n.description) },
   {
     key: 'base_price',
     header: 'Preço base',
@@ -55,18 +58,32 @@ const columns: Column<NoticeListItem>[] = [
     sortable: true,
     render: (n) => formatDate(n.proposal_deadline),
   },
-  { key: 'active', header: 'Estado', render: (n) => <ActiveBadge active={n.active} /> },
+  { key: 'status', header: 'Estado', render: (n) => <NoticeStatusBadge status={n.status} /> },
 ]
 
 export function AnunciosList() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [actType, setActType] = useState('')
+  const [contractType, setContractType] = useState('')
+  const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState<SortState | null>(null)
+  const debouncedSearch = useDebouncedValue(search, 400)
 
+  // Search, act_type, contract_type, status and order_by are all applied
+  // server-side, over the whole table — not just the loaded page.
   const params = useMemo(
-    () => ({ page, page_size: PAGE_SIZE, order_by: orderByFor(sort) }),
-    [page, sort],
+    () => ({
+      page,
+      page_size: PAGE_SIZE,
+      order_by: orderByFor(sort),
+      q: debouncedSearch.trim() || undefined,
+      act_type: actType || undefined,
+      contract_type: contractType || undefined,
+      status: status || undefined,
+    }),
+    [page, sort, debouncedSearch, actType, contractType, status],
   )
 
   const { data, loading, error, reload } = useApiQuery(
@@ -74,53 +91,100 @@ export function AnunciosList() {
     [params],
   )
 
-  // Search only filters the rows already loaded for the current page — the
-  // API has no free-text search param, so it can't reach across pages.
-  const rows = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!data) return []
-    if (!q) return data.notices
-    return data.notices.filter((n) => n.notice_number.toLowerCase().includes(q))
-  }, [data, search])
+  // Fetched once — options for the two filter <select>s (never a value that
+  // would give zero results, and picks up new imported values automatically).
+  const { data: filterOptions } = useApiQuery(
+    (signal) => getNoticeFilters(signal),
+    [],
+  )
+  const actTypeOptions = useMemo(
+    () => uniqueSorted(filterOptions?.act_types ?? []),
+    [filterOptions],
+  )
+  const contractTypeOptions = useMemo(
+    () => uniqueSorted(filterOptions?.contract_types ?? []),
+    [filterOptions],
+  )
+
+  const resetPage = () => setPage(1)
 
   return (
     <div>
-      <PageHeader eyebrow="Contratação pública" title="Anúncios" />
+      <PageHeader eyebrow="Contratação pública" title="Contratações Publicas" />
 
       <div className={listStyles.toolbar}>
         <div className={listStyles.grow}>
           <Input
-            label="Pesquisar n.º anúncio"
-            placeholder="Ex.: 16932/2026"
+            label="Pesquisar (n.º / entidade / descrição)"
+            placeholder="Ex.: manutenção, Loulé, 16932/2026"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              resetPage()
+            }}
+          />
+        </div>
+        <div className={listStyles.shrink}>
+          <Select
+            label="Tipo de ato"
+            placeholder="Todos"
+            value={actType}
+            onChange={(e) => {
+              setActType(e.target.value)
+              resetPage()
+            }}
+            options={actTypeOptions.map((v) => ({ value: v, label: v }))}
+          />
+        </div>
+        <div className={listStyles.shrink}>
+          <Select
+            label="Tipo de contrato"
+            placeholder="Todos"
+            value={contractType}
+            onChange={(e) => {
+              setContractType(e.target.value)
+              resetPage()
+            }}
+            options={contractTypeOptions.map((v) => ({ value: v, label: v }))}
+          />
+        </div>
+        <div className={listStyles.narrow}>
+          <Select
+            label="Estado"
+            placeholder="Todos"
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value)
+              resetPage()
+            }}
+            options={filterOptions?.statuses ?? []}
           />
         </div>
       </div>
 
       {loading && !data ? (
-        <LoadingBlock message="A carregar anúncios…" />
+        <LoadingBlock message="A carregar contratações públicas…" />
       ) : error ? (
         <ErrorState error={error} onRetry={reload} />
-      ) : rows.length > 0 ? (
+      ) : data && data.notices.length > 0 ? (
         <div className={loading ? listStyles.stale : undefined}>
           <DataTable
             columns={columns}
-            rows={rows}
+            rows={data.notices}
             rowKey={(n) => n.id}
             onRowClick={(n) => navigate(`/anuncios/${n.id}`)}
-            ariaLabel="Lista de anúncios"
+            ariaLabel="Lista de Contratações Publicas"
             sort={sort}
             onSortChange={(next) => {
               setSort(next)
-              setPage(1)
+              resetPage()
             }}
           />
           <Pagination
-            page={data!.page}
-            numPages={data!.num_pages}
-            total={data!.total}
-            pageSize={data!.page_size}
+            page={data.page}
+            numPages={data.num_pages}
+            total={data.total}
+            pageSize={data.page_size}
             onPage={setPage}
           />
         </div>
@@ -128,8 +192,8 @@ export function AnunciosList() {
         <EmptyState
           title="Sem anúncios"
           message={
-            search
-              ? 'Nenhum anúncio corresponde à pesquisa nesta página.'
+            search || actType || contractType || status
+              ? 'Nenhum anúncio corresponde aos critérios.'
               : 'Nenhum anúncio disponível.'
           }
         />

@@ -5,8 +5,8 @@
 
 export const ROLES = [
   'admin',
-  'commercial',
-  'composer',
+  'commercial_grants',
+  'commercial_public',
   'client',
   'viewer',
 ] as const
@@ -14,11 +14,15 @@ export type Role = (typeof ROLES)[number]
 
 export const ROLE_LABELS: Record<Role, string> = {
   admin: 'Administrador',
-  commercial: 'Comercial',
-  composer: 'Redator',
+  commercial_grants: 'Comercial (Avisos)',
+  commercial_public: 'Comercial (Contratações Públicas)',
   client: 'Cliente',
   viewer: 'Visitante',
 }
+
+/** Either commercial sub-role — used wherever the old `commercial` role was
+ *  checked before the admin/commercial_grants/commercial_public split. */
+export const COMMERCIAL_ROLES = ['commercial_grants', 'commercial_public'] as const
 
 export const ENTITY_TYPES = [
   'empresa',
@@ -71,6 +75,13 @@ export const ENTITY_SIZE_OPTIONS = ENTITY_SIZES.map((s) => ({
   value: s,
   label: ENTITY_SIZE_LABELS[s],
 }))
+
+/** Estado of a Contratações Publicas notice — mirrors GET /anuncios/. */
+export const NOTICE_STATUS_LABELS: Record<string, string> = {
+  active: 'Ativo',
+  inactive: 'Inativo',
+  to_fix: 'Corrigir',
+}
 
 /** Ordering options accepted by GET /anuncios/. */
 export const NOTICE_ORDER_OPTIONS = [
