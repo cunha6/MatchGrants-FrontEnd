@@ -30,10 +30,10 @@ const PAGE_SIZE = 20
 
 const columns: Column<User>[] = [
   {
-    key: 'username',
-    header: 'Utilizador',
+    key: 'first_name',
+    header: 'Nome',
     primary: true,
-    render: (u) => <strong>{u.username}</strong>,
+    render: (u) => <strong>{orDash(u.first_name)}</strong>,
   },
   { key: 'email', header: 'Email', render: (u) => orDash(u.email) },
   {

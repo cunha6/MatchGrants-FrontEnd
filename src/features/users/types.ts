@@ -4,6 +4,8 @@ import type { EntitySize, EntityType, Role } from '../../shared/constants/domain
 export interface User {
   id: number
   username: string
+  first_name: string | null
+  job_title: string | null
   email: string
   role: Role
   is_active: boolean

@@ -11,12 +11,14 @@ import {
   Alert,
   Button,
   Card,
+  Checkbox,
   EmptyState,
   Form,
   FormActions,
   FormGrid,
   Input,
   LoadingBlock,
+  Modal,
   PageHeader,
   Section,
   Select,
@@ -31,6 +33,11 @@ import { ApiError, type MissingField } from '../../../api/client'
 import styles from './MatchEvaluate.module.css'
 
 const EMPTY = { nif: '', cae: '', region: '', dimension: '', entity_type: '' }
+const EMPTY_CONTACT = { email: '', name: '', job_title: '' }
+
+/** Second-step fields: only requested once cae/region/dimension/entity_type
+ *  are already resolved, so a popup (not the inline form) collects them. */
+const CONTACT_FIELDS = new Set(['email', 'name', 'job_title'])
 
 export function MatchEvaluate() {
   const { hasRole } = useAuth()
@@ -48,6 +55,18 @@ export function MatchEvaluate() {
   const [promoteMsg, setPromoteMsg] = useState<{ ok: boolean; text: string } | null>(
     null,
   )
+
+  // Second step (anonymous only): once cae/region/dimension/entity_type are
+  // resolved, the API can still 422 asking for contact info. `lastPayload`
+  // remembers what was already sent so the popup only adds email/name/job_title.
+  const [lastPayload, setLastPayload] = useState<EvaluateNifPayload | null>(null)
+  const [contactOpen, setContactOpen] = useState(false)
+  const [contact, setContact] = useState(EMPTY_CONTACT)
+  const [consent, setConsent] = useState(false)
+  const [consentError, setConsentError] = useState<string | null>(null)
+  const [contactMissing, setContactMissing] = useState<MissingField[]>([])
+  const [contactError, setContactError] = useState<string | null>(null)
+  const [contactSubmitting, setContactSubmitting] = useState(false)
   // `selected` keeps the clicked match (its score/breakdown render instantly);
   // `panelOpen` drives the slide-in/out so content persists during close.
   const [selected, setSelected] = useState<MatchItem | null>(null)
@@ -68,6 +87,10 @@ export function MatchEvaluate() {
   ) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const missingKeys = new Set(missing.map((m) => m.field))
+  const setContactField = (key: keyof typeof EMPTY_CONTACT) => (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => setContact((c) => ({ ...c, [key]: e.target.value }))
+  const contactMissingKeys = new Set(contactMissing.map((m) => m.field))
 
   const run = async (e: FormEvent) => {
     e.preventDefault()
@@ -75,6 +98,9 @@ export function MatchEvaluate() {
     setPromoteMsg(null)
     setSelected(null)
     setPanelOpen(false)
+    setContactOpen(false)
+    setContactMissing([])
+    setContactError(null)
     setLoading(true)
 
     const payload: EvaluateNifPayload = { nif: form.nif.trim() }
@@ -82,6 +108,7 @@ export function MatchEvaluate() {
     if (form.region) payload.region = form.region
     if (form.dimension) payload.dimension = form.dimension
     if (form.entity_type) payload.entity_type = form.entity_type
+    setLastPayload(payload)
 
     try {
       const res = await evaluateNif(payload)
@@ -89,8 +116,19 @@ export function MatchEvaluate() {
       setMissing([])
     } catch (err) {
       if (err instanceof ApiError && err.needsMoreInfo) {
-        setMissing(err.missingFields)
-        setError(err.message)
+        if (err.missingFields.some((f) => CONTACT_FIELDS.has(f.field))) {
+          // Business fields already resolved — this second step is
+          // contact info, collected via the popup, not the inline form.
+          setMissing([])
+          setContact(EMPTY_CONTACT)
+          setConsent(false)
+          setConsentError(null)
+          setContactMissing(err.missingFields)
+          setContactOpen(true)
+        } else {
+          setMissing(err.missingFields)
+          setError(err.message)
+        }
         setResult(null)
       } else {
         setError(
@@ -101,6 +139,43 @@ export function MatchEvaluate() {
       }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const submitContact = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!lastPayload) return
+    if (!consent) {
+      setConsentError('É necessário aceitar para continuar.')
+      return
+    }
+    setContactError(null)
+    setContactSubmitting(true)
+
+    const payload: EvaluateNifPayload = {
+      ...lastPayload,
+      email: contact.email.trim(),
+      name: contact.name.trim(),
+      job_title: contact.job_title.trim(),
+    }
+
+    try {
+      const res = await evaluateNif(payload)
+      setResult(res)
+      setLastPayload(payload)
+      setContactMissing([])
+      setContactOpen(false)
+    } catch (err) {
+      if (err instanceof ApiError && err.needsMoreInfo) {
+        setContactMissing(err.missingFields)
+        setContactError(err.message)
+      } else {
+        setContactError(
+          err instanceof ApiError ? err.message : 'Não foi possível avaliar o NIF.',
+        )
+      }
+    } finally {
+      setContactSubmitting(false)
     }
   }
 
@@ -278,6 +353,69 @@ export function MatchEvaluate() {
           />
         )}
       </SidePanel>
+
+      <Modal
+        open={contactOpen}
+        onClose={() => setContactOpen(false)}
+        ariaLabel="Estamos à procura dos incentivos que melhor se adequam a si"
+        footer={
+          <Button
+            type="submit"
+            form="contact-form"
+            fullWidth
+            loading={contactSubmitting}
+            disabled={!consent}
+          >
+            Ver correspondências →
+          </Button>
+        }
+      >
+        <div className={styles.contactHero}>
+          <span className={styles.contactHeroEyebrow}>Quase lá</span>
+          <p className={styles.contactHeroText}>
+            Estamos à procura dos incentivos que melhor se adequam a si.
+          </p>
+        </div>
+        <p className={styles.contactSubtext}>Preencha os dados para o podermos ajudar</p>
+        <Form id="contact-form" onSubmit={submitContact} noValidate>
+          {contactError && <Alert variant="warning">{contactError}</Alert>}
+          <Input
+            label="Email"
+            type="email"
+            value={contact.email}
+            onChange={setContactField('email')}
+            error={contactMissingKeys.has('email') ? 'Campo necessário' : undefined}
+            required
+            autoFocus
+          />
+          <FormGrid>
+            <Input
+              label="Cargo"
+              value={contact.job_title}
+              onChange={setContactField('job_title')}
+              error={contactMissingKeys.has('job_title') ? 'Campo necessário' : undefined}
+              required
+            />
+            <Input
+              label="Nome"
+              value={contact.name}
+              onChange={setContactField('name')}
+              error={contactMissingKeys.has('name') ? 'Campo necessário' : undefined}
+              required
+            />
+          </FormGrid>
+          <Checkbox
+            label="Concordo em receber comunicações acerca de oportunidades de incentivos"
+            checked={consent}
+            onChange={(e) => {
+              setConsent(e.target.checked)
+              if (e.target.checked) setConsentError(null)
+            }}
+            error={consentError ?? undefined}
+            required
+          />
+        </Form>
+      </Modal>
     </div>
   )
 }

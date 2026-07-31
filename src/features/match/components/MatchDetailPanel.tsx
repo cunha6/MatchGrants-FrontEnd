@@ -1,11 +1,14 @@
+import { FaCalendarAlt } from 'react-icons/fa'
 import type { Grant } from '../../avisos/types'
 import type { MatchItem } from '../types'
+import { useAuth } from '../../auth/AuthContext'
 import {
   ButtonLink,
   Chips,
   Deadline,
   DescriptionList,
   ErrorState,
+  ExternalLinkButton,
   LoadingBlock,
   Tag,
 } from '../../../shared/components'
@@ -14,6 +17,7 @@ import type { ApiError } from '../../../api/client'
 import { formatCurrency, formatDate, formatPercent } from '../../../shared/utils/format'
 import { hasValue, toList, toStringArray } from '../../../shared/utils/collections'
 import { cx } from '../../../shared/utils/cx'
+import { MEETING_BOOKING_URL } from '../../../shared/constants/links'
 import styles from './MatchDetailPanel.module.css'
 
 interface MatchDetailPanelProps {
@@ -43,6 +47,8 @@ function bestRate(grant: Grant): number | null {
 
 /** Key facts of the matched aviso (title + score badge live in the header). */
 export function MatchDetailPanel({ match, grant, loading, error }: MatchDetailPanelProps) {
+  const { isAuthenticated } = useAuth()
+
   return (
     <div className={styles.wrap}>
       {loading && <LoadingBlock message="A carregar aviso…" />}
@@ -129,7 +135,24 @@ export function MatchDetailPanel({ match, grant, loading, error }: MatchDetailPa
           )}
 
           <div className={styles.footer}>
-            <ButtonLink to={`/avisos/${match.opportunity_id}`} fullWidth>
+            {!isAuthenticated && (
+              <ExternalLinkButton
+                href={MEETING_BOOKING_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="accent"
+                fullWidth
+                leftIcon={<FaCalendarAlt />}
+              >
+                Marcar reunião
+              </ExternalLinkButton>
+            )}
+            <ButtonLink
+              to={`/avisos/${match.opportunity_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              fullWidth
+            >
               Ver aviso completo →
             </ButtonLink>
           </div>

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { listGrants } from '../api'
 import type { GrantListItem } from '../types'
 import { useApiQuery } from '../../../shared/hooks/useApiQuery'
@@ -83,7 +82,6 @@ const columns: Column<GrantListItem>[] = [
 ]
 
 export function AvisosList() {
-  const navigate = useNavigate()
   const [active, setActive] = useState<'true' | 'false' | 'all'>('true')
   const [search, setSearch] = useState('')
   const [cae, setCae] = useState('')
@@ -198,7 +196,8 @@ export function AvisosList() {
             columns={columns}
             rows={data.grants}
             rowKey={(g) => g.id}
-            onRowClick={(g) => navigate(`/avisos/${g.id}`)}
+            rowHref={(g) => `/avisos/${g.id}`}
+            getRowAriaLabel={(g) => g.title}
             ariaLabel="Lista de avisos"
             sort={sort}
             onSortChange={(next) => {

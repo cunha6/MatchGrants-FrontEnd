@@ -136,6 +136,21 @@ th[aria-sort='descending'] .sortInd {
   outline-offset: -2px;
 }
 
+/* Row-as-link: an invisible <a> (in the first cell) stretches to cover the
+   whole row, so ctrl/cmd/middle-click and "open in new tab" work anywhere
+   on it — normal click still navigates in-app via react-router. */
+.linkRow {
+  position: relative;
+}
+.rowLinkOverlay {
+  position: absolute;
+  inset: 0;
+}
+.rowLinkOverlay:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
 /* ---- Mobile cards (<768px) ---- */
 .cards {
   display: flex;

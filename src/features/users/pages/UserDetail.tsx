@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { activateUser, changePassword, deleteUser, getUser } from '../api'
+import { requestPasswordReset } from '../../auth/api'
 import { useAuth } from '../../auth/AuthContext'
 import { useApiQuery } from '../../../shared/hooks/useApiQuery'
 import {
@@ -131,7 +132,17 @@ export function UserDetail() {
               </ButtonLink>
             )}
             {(isSelf || canManageTarget) && (
-              <Button variant="ghost" onClick={() => setPwOpen(true)}>
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  canManageTarget && !isSelf
+                    ? act(
+                        () => requestPasswordReset(user.email),
+                        'Email de redefinição de palavra-passe enviado.',
+                      )
+                    : setPwOpen(true)
+                }
+              >
                 {canManageTarget && !isSelf ? 'Repor palavra-passe' : 'Alterar palavra-passe'}
               </Button>
             )}
@@ -172,6 +183,8 @@ export function UserDetail() {
       <Card>
         <div className={styles.profile}>
           <ProfileSection title="Conta">
+            <Field label="Nome" value={orDash(user.first_name)} />
+            <Field label="Função" value={orDash(user.job_title)} />
             <Field label="Email" value={orDash(user.email)} />
             <Field label="Papel" value={ROLE_LABELS[user.role] ?? user.role} />
             <Field label="ID" value={`#${user.id}`} mono />

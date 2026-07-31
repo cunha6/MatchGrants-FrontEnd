@@ -5,6 +5,8 @@ import { NotFound } from './StatusPages'
 
 import { Login } from '../features/auth/pages/Login'
 import { Register } from '../features/auth/pages/Register'
+import { ForgotPassword } from '../features/auth/pages/ForgotPassword'
+import { ResetPassword } from '../features/auth/pages/ResetPassword'
 import { AvisosList } from '../features/avisos/pages/AvisosList'
 import { AvisoDetail } from '../features/avisos/pages/AvisoDetail'
 import { AvisoEdit } from '../features/avisos/pages/AvisoEdit'
@@ -29,6 +31,8 @@ export function AppRoutes() {
         {/* Public */}
         <Route path="login" element={<Login />} />
         <Route path="registar" element={<Register />} />
+        <Route path="esqueci-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
         <Route path="avisos/:id" element={<AvisoDetail />} />
         <Route path="match" element={<MatchEvaluate />} />
 

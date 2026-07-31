@@ -69,6 +69,11 @@ export interface EvaluateNifPayload {
   region?: string
   dimension?: string
   entity_type?: string
+  /** Second-step contact info, requested (via a second 422) only for
+   *  anonymous callers, after cae/region/dimension/entity_type are resolved. */
+  email?: string
+  name?: string
+  job_title?: string
 }
 
 export interface PromoteResponse {

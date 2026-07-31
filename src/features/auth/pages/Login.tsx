@@ -2,7 +2,14 @@ import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
 import { AuthCard } from '../components/AuthCard'
-import { Alert, Button, Form, FormActions, Input } from '../../../shared/components'
+import {
+  Alert,
+  Button,
+  Form,
+  FormActions,
+  Input,
+  PasswordInput,
+} from '../../../shared/components'
 import { ApiError } from '../../../api/client'
 
 interface LocationState {
@@ -71,10 +78,9 @@ export function Login() {
           required
           autoFocus
         />
-        <Input
+        <PasswordInput
           label="Palavra-passe"
           name="password"
-          type="password"
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -86,6 +92,9 @@ export function Login() {
           </Button>
         </FormActions>
       </Form>
+      <div style={{ textAlign: 'center', marginTop: 'var(--space-3)' }}>
+        <Link to="/esqueci-password">Esqueceu-se da palavra-passe?</Link>
+      </div>
     </AuthCard>
   )
 }

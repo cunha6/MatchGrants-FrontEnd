@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { MEDIA } from '../constants/breakpoints'
 import { cx } from '../utils/cx'
@@ -31,6 +32,16 @@ interface DataTableProps<T> {
   rowKey: (row: T, index: number) => string | number
   /** Whole-row click (keyboard accessible). Typically navigates to detail. */
   onRowClick?: (row: T) => void
+  /**
+   * Makes the whole row a real link to this href instead of a JS-only click
+   * handler — normal click still navigates in-app (via react-router), but
+   * ctrl/cmd/middle-click and "open in new tab" now work too. Takes priority
+   * over `onRowClick` when both are given.
+   */
+  rowHref?: (row: T) => string
+  /** Accessible name for the row link (rowHref has no visible text of its
+   *  own — it's an invisible overlay covering the row). */
+  getRowAriaLabel?: (row: T) => string
   ariaLabel?: string
   /**
    * Controlled sort state. Pass this + `onSortChange` when sorting must
@@ -61,12 +72,19 @@ export function DataTable<T>({
   rows,
   rowKey,
   onRowClick,
+  rowHref,
+  getRowAriaLabel,
   ariaLabel,
   sort: controlledSort,
   onSortChange,
 }: DataTableProps<T>) {
   const isMobile = useMediaQuery(MEDIA.mdDown)
-  const clickable = Boolean(onRowClick)
+  // With rowHref, the anchor itself is the sole interactive element (real
+  // link — keyboard/click/new-tab all work natively); onRowClick then only
+  // applies when rowHref isn't given. Either way the row still looks/feels
+  // clickable (pointer cursor, hover background).
+  const clickable = Boolean(onRowClick) && !rowHref
+  const looksClickable = clickable || Boolean(rowHref)
   const isControlled = controlledSort !== undefined
   const [internalSort, setInternalSort] = useState<SortState | null>(null)
   const sort = isControlled ? controlledSort! : internalSort
@@ -153,11 +171,22 @@ export function DataTable<T>({
             <div
               key={rowKey(row, index)}
               role="listitem"
-              className={cx(styles.card, clickable && styles.clickable)}
+              className={cx(
+                styles.card,
+                looksClickable && styles.clickable,
+                rowHref && styles.linkRow,
+              )}
               onClick={clickable ? () => activate(row) : undefined}
               onKeyDown={(e) => onKeyDown(e, row)}
               tabIndex={clickable ? 0 : undefined}
             >
+              {rowHref && (
+                <Link
+                  to={rowHref(row)}
+                  className={styles.rowLinkOverlay}
+                  aria-label={getRowAriaLabel?.(row)}
+                />
+              )}
               <div className={styles.cardTitle}>{primary.render(row)}</div>
               <dl className={styles.cardList}>
                 {rest.map((col) => (
@@ -220,17 +249,27 @@ export function DataTable<T>({
           {sortedRows.map((row, index) => (
             <tr
               key={rowKey(row, index)}
-              className={cx(clickable && styles.clickableRow)}
+              className={cx(
+                looksClickable && styles.clickableRow,
+                rowHref && styles.linkRow,
+              )}
               onClick={clickable ? () => activate(row) : undefined}
               onKeyDown={(e) => onKeyDown(e, row)}
               tabIndex={clickable ? 0 : undefined}
               role={clickable ? 'link' : undefined}
             >
-              {columns.map((col) => (
+              {columns.map((col, colIndex) => (
                 <td
                   key={col.key}
                   className={cx(col.align === 'right' && styles.right)}
                 >
+                  {colIndex === 0 && rowHref && (
+                    <Link
+                      to={rowHref(row)}
+                      className={styles.rowLinkOverlay}
+                      aria-label={getRowAriaLabel?.(row)}
+                    />
+                  )}
                   {col.render(row)}
                 </td>
               ))}

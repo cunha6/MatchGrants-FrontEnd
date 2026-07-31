@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
+import { FaCalendarAlt } from 'react-icons/fa'
 import { getGrant } from '../api'
 import type { FinancingRateRow } from '../types'
 import {
@@ -50,6 +51,7 @@ import {
   orDash,
 } from '../../../shared/utils/format'
 import { hasValue, toList, toStringArray } from '../../../shared/utils/collections'
+import { MEETING_BOOKING_URL } from '../../../shared/constants/links'
 import detail from '../../../shared/styles/detail.module.css'
 
 const rateColumns: Column<FinancingRateRow>[] = [
@@ -85,7 +87,7 @@ interface EditFlash {
 export function AvisoDetail() {
   const { id } = useParams<{ id: string }>()
   const grantId = Number(id)
-  const { hasRole } = useAuth()
+  const { hasRole, isAuthenticated } = useAuth()
   const canEdit = hasRole('admin', 'commercial_grants', 'commercial_public')
   const location = useLocation()
 
@@ -219,7 +221,7 @@ export function AvisoDetail() {
         title={grant.title}
         meta={orDash(grant.managing_entity)}
         actions={
-          grant.document_url || canEdit ? (
+          grant.document_url || canEdit || !isAuthenticated ? (
             <>
               {grant.document_url && (
                 <ExternalLinkButton
@@ -230,6 +232,18 @@ export function AvisoDetail() {
                   size="sm"
                 >
                   Abrir aviso (PDF)
+                </ExternalLinkButton>
+              )}
+              {!isAuthenticated && (
+                <ExternalLinkButton
+                  href={MEETING_BOOKING_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<FaCalendarAlt />}
+                >
+                  Marcar reunião
                 </ExternalLinkButton>
               )}
               {canEdit && (

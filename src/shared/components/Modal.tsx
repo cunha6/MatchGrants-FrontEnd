@@ -10,6 +10,9 @@ interface ModalProps {
   footer?: ReactNode
   /** Max width in px. Defaults to 520. */
   width?: number
+  /** Accessible name when there's no (string) title — e.g. a title-less,
+   *  fully custom body. */
+  ariaLabel?: string
 }
 
 /** Accessible dialog: ESC / backdrop to close, body scroll lock, focus on open. */
@@ -20,24 +23,33 @@ export function Modal({
   children,
   footer,
   width = 520,
+  ariaLabel,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
+
+  // Keep the latest onClose without making it an effect dependency — onClose
+  // is usually a fresh inline function on every render, and re-running the
+  // effect below on every keystroke would steal focus back to the dialog.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') onCloseRef.current()
     }
     document.addEventListener('keydown', onKey)
     const { overflow } = document.body.style
     document.body.style.overflow = 'hidden'
-    // Move focus into the dialog
+    // Move focus into the dialog (only on open, not on every re-render)
     dialogRef.current?.focus()
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = overflow
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 
@@ -49,7 +61,7 @@ export function Modal({
         style={{ maxWidth: width }}
         role="dialog"
         aria-modal="true"
-        aria-label={typeof title === 'string' ? title : undefined}
+        aria-label={ariaLabel ?? (typeof title === 'string' ? title : undefined)}
         tabIndex={-1}
         onMouseDown={(e) => e.stopPropagation()}
       >

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { getNoticeFilters, listNotices } from '../api'
 import type { NoticeListItem } from '../types'
 import { NoticeStatusBadge } from '../components/NoticeStatusBadge'
@@ -62,7 +61,6 @@ const columns: Column<NoticeListItem>[] = [
 ]
 
 export function AnunciosList() {
-  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [actType, setActType] = useState('')
   const [contractType, setContractType] = useState('')
@@ -172,7 +170,8 @@ export function AnunciosList() {
             columns={columns}
             rows={data.notices}
             rowKey={(n) => n.id}
-            onRowClick={(n) => navigate(`/anuncios/${n.id}`)}
+            rowHref={(n) => `/anuncios/${n.id}`}
+            getRowAriaLabel={(n) => n.entity_name}
             ariaLabel="Lista de Contratações Publicas"
             sort={sort}
             onSortChange={(next) => {
