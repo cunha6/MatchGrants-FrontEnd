@@ -53,7 +53,7 @@ export function Login() {
   return (
     <AuthCard
       title="Entrar"
-      subtitle="Aceda à sua conta MatchGrants."
+      subtitle="Aceda à sua conta FundMatch."
       footer={
         <>
           Ainda não tem conta? <Link to="/registar">Criar conta</Link>
@@ -63,14 +63,15 @@ export function Login() {
       {state?.registered && (
         <div style={{ marginBottom: 'var(--space-4)' }}>
           <Alert variant="success" title="Conta criada">
-            Já pode iniciar sessão com as suas credenciais.
+            Enviámos um email com um link para definir a sua palavra-passe.
+            Depois disso já pode iniciar sessão.
           </Alert>
         </div>
       )}
       <Form onSubmit={onSubmit} noValidate>
         {error && <Alert variant="danger">{error}</Alert>}
         <Input
-          label="Utilizador"
+          label="Nome Utilizador"
           name="username"
           autoComplete="username"
           value={username}

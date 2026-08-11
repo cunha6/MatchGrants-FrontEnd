@@ -4,6 +4,19 @@ import { formatCurrency, formatPercent } from '../../../shared/utils/format'
 import type { MatchItem } from '../types'
 import styles from './MatchCard.module.css'
 
+/** These criteria describe something the aviso's own document may simply
+ *  not state (dimensão da empresa, tipo de beneficiário, CAE elegível) — a
+ *  red ✕ would overclaim "definitely ineligible" when it can just as well
+ *  mean "o aviso não especifica". Matched on the label text since the API
+ *  doesn't expose a stable machine-readable criterion enum for this. */
+function isUncertainCriterion(label: string): boolean {
+  const l = label
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // strip accents (á, ã, í, …)
+  return l === 'cae' || l.includes('dimensa') || l.includes('beneficiar')
+}
+
 interface MatchCardProps {
   match: MatchItem
   selected?: boolean
@@ -107,10 +120,19 @@ export function MatchCard({
             {match.eligibility.map((e, i) => {
               const points = pointsByCriterion.get(e.criterion)
               const isEligible = points === 0 ? false : e.eligible
+              const uncertain = !isEligible && isUncertainCriterion(e.label)
               return (
-                <li key={i} className={isEligible ? styles.ok : styles.no}>
+                <li
+                  key={i}
+                  className={isEligible ? styles.ok : uncertain ? styles.warn : styles.no}
+                  title={
+                    uncertain
+                      ? 'O aviso pode não especificar este critério — não é necessariamente uma exclusão.'
+                      : undefined
+                  }
+                >
                   <span className={styles.mark} aria-hidden="true">
-                    {isEligible ? '✓' : '✕'}
+                    {isEligible ? '✓' : uncertain ? '!' : '✕'}
                   </span>
                   {e.label}
                 </li>

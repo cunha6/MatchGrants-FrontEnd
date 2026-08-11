@@ -88,6 +88,10 @@ export interface Notice extends NoticeListItem {
   series?: string | number | null
   year?: string | number | null
   environmental_criteria?: boolean | null
+  /** AI reading of the caderno de encargos — optional here defensively, but
+   *  the API always sends it (status 'pending' with empty content until
+   *  someone triggers generation via POST .../detail/). */
+  ai_detail?: NoticeAiDetailState
 }
 
 /** PUT/PATCH /anuncios/<id>/edit/ — mirrors the aviso edit response. */
@@ -99,6 +103,48 @@ export interface NoticeEditResponse {
   /** Fields rejected (outside the server-side whitelist). */
   ignored: string[]
 }
+
+/** The AI reading itself — shared by the embedded state on Notice and the
+ *  POST 200 response. Every field can come back empty ("" / []) when the
+ *  document doesn't carry that information (or generation hasn't run yet). */
+export interface NoticeAiContent {
+  descricao_detalhada: string
+  /**
+   * One sentence describing the evaluation model, e.g. "Multifator –
+   * Proposta economicamente mais vantajosa: Preço (30%) + …". A few exact
+   * strings are worth matching on if UI logic ever needs them:
+   * - "Monofator – Preço mais baixo (100%)" — price is the only criterion.
+   * - "Não foi possível identificar os critérios de avaliação no documento."
+   * - "" — not generated yet (status != 'done').
+   */
+  avaliacao: string
+  /** One note per item; [] when there's nothing to flag. */
+  observacoes: string[]
+}
+
+export type NoticeAiStatus = 'pending' | 'generating' | 'done' | 'error'
+
+/** Notice.ai_detail (GET /anuncios/<id>/) — visible to anyone who can see the
+ *  anúncio, regardless of role. Content fields are only meaningful once
+ *  `status` is 'done'; otherwise they're empty placeholders. */
+export interface NoticeAiDetailState extends NoticeAiContent {
+  status: NoticeAiStatus
+}
+
+/** POST /anuncios/<id>/detail/ while the background generation hasn't
+ *  finished (or hasn't started) yet — keep polling the same endpoint. */
+export interface NoticeAiDetailGenerating {
+  status: 'generating'
+}
+
+/** POST /anuncios/<id>/detail/ once the AI reading is ready — either it was
+ *  already cached, or the background generation just finished. */
+export interface NoticeAiDetail extends NoticeAiContent {
+  status: 'done'
+}
+
+/** 202 while generating, 200 once done — same endpoint, poll it. */
+export type NoticeAiDetailResponse = NoticeAiDetailGenerating | NoticeAiDetail
 
 export interface ImportSummary {
   created?: number

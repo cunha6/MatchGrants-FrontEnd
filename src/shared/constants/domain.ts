@@ -24,6 +24,23 @@ export const ROLE_LABELS: Record<Role, string> = {
  *  checked before the admin/commercial_grants/commercial_public split. */
 export const COMMERCIAL_ROLES = ['commercial_grants', 'commercial_public'] as const
 
+/** Staff accounts (admin/commercial) only ever have login + identity fields —
+ *  the API omits the entity/location fields entirely for these roles (present
+ *  only for client/viewer, real companies/leads). */
+export function isStaffRole(role: string): boolean {
+  return role === 'admin' || (COMMERCIAL_ROLES as readonly string[]).includes(role)
+}
+
+/** Compact role label for tight spaces (e.g. the account menu) — both
+ *  commercial sub-roles collapse to "Comercial". */
+export const ROLE_LABELS_SHORT: Record<Role, string> = {
+  admin: 'Administrador',
+  commercial_grants: 'Comercial',
+  commercial_public: 'Comercial',
+  client: 'Cliente',
+  viewer: 'Visitante',
+}
+
 export const ENTITY_TYPES = [
   'empresa',
   'associacao',

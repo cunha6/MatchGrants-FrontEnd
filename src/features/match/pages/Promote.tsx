@@ -47,7 +47,7 @@ export function Promote() {
             <Alert variant="success" title="Entidade promovida">
               <DescriptionList
                 items={[
-                  { label: 'Utilizador', value: `#${result.user_id}`, mono: true },
+                  { label: 'Nome Utilizador', value: `#${result.user_id}`, mono: true },
                   { label: 'NIF', value: result.nif, mono: true },
                   { label: 'Papel', value: result.role },
                   { label: 'Ativo', value: result.is_active ? 'Sim' : 'Não' },

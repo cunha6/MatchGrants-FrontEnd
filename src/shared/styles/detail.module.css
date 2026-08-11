@@ -14,6 +14,20 @@
   text-decoration: none;
 }
 
+/* Back link on the left, a page-level action (e.g. "Gerar detalhe IA") on the
+   right, sharing one line. */
+.backRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.backRow .back {
+  margin-bottom: 0;
+}
+
 .cols {
   display: grid;
   /* minmax(0, 1fr) — WITHOUT the 0 minimum, the 1fr track keeps its implicit
@@ -43,6 +57,13 @@
 
 .lead + .lead {
   margin-top: var(--space-3);
+}
+
+.aiDisclaimer {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
 }
 
 @media (max-width: 900px) {

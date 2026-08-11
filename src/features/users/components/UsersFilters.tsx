@@ -24,7 +24,7 @@ export function UsersFilters({ value, onChange }: Props) {
       onClear={() => onChange(DEFAULT_USERS_FILTERS)}
     >
       <Input
-        label="Utilizador"
+        label="Nome Utilizador"
         value={value.username}
         onChange={(e) => set({ username: e.target.value })}
       />

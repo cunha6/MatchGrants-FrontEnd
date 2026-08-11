@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../AuthContext'
 import { createUser } from '../../users/api'
 import { AuthCard } from '../components/AuthCard'
 import {
@@ -22,20 +21,15 @@ import { ApiError } from '../../../api/client'
 const EMPTY = {
   username: '',
   email: '',
-  password: '',
-  confirm: '',
   entity_type: '',
   entity_size: '',
   nif: '',
   main_cae: '',
   address: '',
-  region: '',
-  nuts_ii: '',
-  nuts_iii: '',
+  postal_code: ''
 }
 
 export function Register() {
-  const { login } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState(EMPTY)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -46,45 +40,26 @@ export function Register() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
-  const validate = (): boolean => {
-    const next: Record<string, string> = {}
-    if (form.password.length <= 8)
-      next.password = 'A palavra-passe deve ter mais de 8 caracteres.'
-    else if (/^\d+$/.test(form.password))
-      next.password = 'A palavra-passe não pode ser apenas números.'
-    if (form.confirm !== form.password)
-      next.confirm = 'As palavras-passe não coincidem.'
-    setErrors(next)
-    return Object.keys(next).length === 0
-  }
-
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setGeneral(null)
-    if (!validate()) return
+    setErrors({})
 
     setSubmitting(true)
     try {
       await createUser({
         username: form.username.trim(),
         email: form.email.trim(),
-        password: form.password,
         entity_type: form.entity_type || undefined,
         entity_size: form.entity_size || undefined,
         nif: form.nif || undefined,
         main_cae: form.main_cae || undefined,
         address: form.address || undefined,
-        region: form.region || undefined,
-        nuts_ii: form.nuts_ii || undefined,
-        nuts_iii: form.nuts_iii || undefined,
+        postal_code: form.postal_code || undefined
       })
-      // Try to sign in immediately; fall back to the login page.
-      try {
-        await login(form.username.trim(), form.password)
-        navigate('/avisos', { replace: true })
-      } catch {
-        navigate('/login', { replace: true, state: { registered: true } })
-      }
+      // No password is set at registration — the account gets an email with
+      // a link to set one, so there's no session to start here.
+      navigate('/login', { replace: true, state: { registered: true } })
     } catch (err) {
       setErrors(fieldErrorsFrom(err))
       setGeneral(
@@ -99,7 +74,7 @@ export function Register() {
     <AuthCard
       wide
       title="Criar conta"
-      subtitle="Registe-se como cliente para avaliar a elegibilidade da sua entidade."
+      subtitle="Registe-se como cliente para ter acesso a todos os Incentivos."
       footer={
         <>
           Já tem conta? <Link to="/login">Entrar</Link>
@@ -111,7 +86,7 @@ export function Register() {
 
         <FormGrid>
           <Input
-            label="Utilizador"
+            label="Nome Utilizador"
             autoComplete="username"
             value={form.username}
             onChange={set('username')}
@@ -127,25 +102,6 @@ export function Register() {
             error={errors.email}
             required
           />
-          <Input
-            label="Palavra-passe"
-            type="password"
-            autoComplete="new-password"
-            value={form.password}
-            onChange={set('password')}
-            error={errors.password}
-            hint="Mais de 8 caracteres, não trivial."
-            required
-          />
-          <Input
-            label="Confirmar palavra-passe"
-            type="password"
-            autoComplete="new-password"
-            value={form.confirm}
-            onChange={set('confirm')}
-            error={errors.confirm}
-            required
-          />
           <Select
             label="Tipo de entidade"
             placeholder="Selecionar…"
@@ -153,6 +109,7 @@ export function Register() {
             value={form.entity_type}
             onChange={set('entity_type')}
             error={errors.entity_type}
+            required
           />
           <Select
             label="Dimensão"
@@ -161,6 +118,7 @@ export function Register() {
             value={form.entity_size}
             onChange={set('entity_size')}
             error={errors.entity_size}
+            required
           />
           <Input
             label="NIF"
@@ -168,36 +126,28 @@ export function Register() {
             value={form.nif}
             onChange={set('nif')}
             error={errors.nif}
+            required
           />
           <Input
             label="CAE principal"
             value={form.main_cae}
             onChange={set('main_cae')}
             error={errors.main_cae}
-          />
-          <Input
-            label="Região"
-            value={form.region}
-            onChange={set('region')}
-            error={errors.region}
+            required
           />
           <Input
             label="Morada"
             value={form.address}
             onChange={set('address')}
             error={errors.address}
+            required
           />
           <Input
-            label="NUTS II"
-            value={form.nuts_ii}
-            onChange={set('nuts_ii')}
-            error={errors.nuts_ii}
-          />
-          <Input
-            label="NUTS III"
-            value={form.nuts_iii}
-            onChange={set('nuts_iii')}
-            error={errors.nuts_iii}
+            label="Código Postal"
+            value={form.postal_code}
+            onChange={set('postal_code')}
+            error={errors.postal_code}
+            required
           />
         </FormGrid>
 

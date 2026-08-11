@@ -26,7 +26,7 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route index element={<Navigate to="/avisos" replace />} />
+        <Route index element={<Navigate to="/match" replace />} />
 
         {/* Public */}
         <Route path="login" element={<Login />} />

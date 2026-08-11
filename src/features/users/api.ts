@@ -1,6 +1,5 @@
 import { api, type QueryParams } from '../../api/client'
 import type {
-  PasswordChangePayload,
   User,
   UserCreatePayload,
   UsersListParams,
@@ -37,12 +36,11 @@ export function updateUser(
 }
 
 /** POST /users/<id>/password/ — admin, self, or commercial_grants/commercial_public
- *  when the target is a viewer/client. */
-export function changePassword(
-  id: number,
-  payload: PasswordChangePayload,
-): Promise<unknown> {
-  return api.post(`/users/${id}/password/`, payload)
+ *  when the target is a viewer/client. Takes no body — sends an email with a
+ *  reset link to the account's registered email. 400 if the account has no
+ *  email or is inactive. */
+export function sendPasswordResetEmail(id: number): Promise<{ message: string }> {
+  return api.post<{ message: string }>(`/users/${id}/password/`)
 }
 
 /** POST /users/<id>/activate/ — re-activates a soft-deleted user. Admin, or

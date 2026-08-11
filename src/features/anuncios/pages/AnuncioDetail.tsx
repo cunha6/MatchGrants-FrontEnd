@@ -2,11 +2,19 @@ import { Link, useParams } from 'react-router-dom'
 import { getNotice } from '../api'
 import type { Cpv, Lot } from '../types'
 import { NoticeStatusBadge } from '../components/NoticeStatusBadge'
+import {
+  NoticeAiDescription,
+  NoticeAiEvaluation,
+  NoticeAiObservations,
+  NoticeAiStatus,
+} from '../components/NoticeAiSections'
+import { useNoticeAiDetail } from '../useNoticeAiDetail'
 import { useAuth } from '../../auth/AuthContext'
 import { useApiQuery } from '../../../shared/hooks/useApiQuery'
 import { apiUrl } from '../../../api/client'
 import {
   Badge,
+  Button,
   ButtonLink,
   Card,
   Chips,
@@ -71,6 +79,9 @@ export function AnuncioDetail() {
     (signal) => getNotice(noticeId, signal),
     [noticeId],
   )
+  // Before the early returns below — hooks can't run conditionally. `notice`
+  // is null until the GET above resolves; the hook seeds itself once it isn't.
+  const ai = useNoticeAiDetail(noticeId, notice?.ai_detail ?? null)
 
   if (loading) return <LoadingBlock message="A carregar anúncio…" />
   if (error) {
@@ -132,9 +143,20 @@ export function AnuncioDetail() {
 
   return (
     <div>
-      <Link to="/anuncios" className={detail.back}>
-        ← Voltar a Contratações Publicas
-      </Link>
+      <div className={detail.backRow}>
+        <Link to="/anuncios" className={detail.back}>
+          ← Voltar a Contratações Publicas
+        </Link>
+        {ai.canTrigger && (
+          <Button
+            size="sm"
+            loading={ai.status === 'loading'}
+            onClick={() => ai.generate()}
+          >
+            {ai.buttonLabel}
+          </Button>
+        )}
+      </div>
 
       <DetailHero
         eyebrow={notice.act_type ?? 'Anúncio de contratação pública'}
@@ -220,13 +242,51 @@ export function AnuncioDetail() {
         ]}
       />
 
+      <p className={detail.aiDisclaimer}>
+        As informações apresentadas foram geradas por Inteligência Artificial e
+        poderão não incluir todos os detalhes relevantes.
+      </p>
+
       <div className={detail.cols}>
         <div>
+          <Section eyebrow="Ficha do anúncio" title="Detalhes da publicação">
+            <Card>
+              <DescriptionList
+                items={[
+                  { label: 'Entidade adjudicante', value: orDash(notice.entity_name) },
+                  { label: 'NIF', value: orDash(notice.entity_nif), mono: true },
+                  { label: 'Ato', value: orDash(notice.act_type) },
+                  { label: 'Procedimento', value: orDash(notice.procedure_type) },
+                  { label: 'Diário da República', value: drLine, mono: true },
+                  {
+                    label: 'Data de publicação',
+                    value: formatDate(notice.publication_date),
+                    mono: true,
+                  },
+                  {
+                    label: 'Critérios ambientais',
+                    value:
+                      notice.environmental_criteria == null
+                        ? '—'
+                        : notice.environmental_criteria
+                          ? 'Sim'
+                          : 'Não',
+                  },
+                ]}
+              />
+            </Card>
+          </Section>
+
           {hasValue(notice.description) && (
             <Section eyebrow="Objeto do procedimento" title="Descrição">
               <p className={detail.lead}>{notice.description}</p>
             </Section>
           )}
+
+          {/* All three AI blocks stay empty until the header button runs the
+              generation; the status one also carries loading/error feedback. */}
+          <NoticeAiStatus state={ai} />
+          <NoticeAiDescription state={ai} />
 
           {lots.length > 0 && (
             <Section eyebrow="Divisão em lotes" title="Lotes">
@@ -297,33 +357,8 @@ export function AnuncioDetail() {
             </Section>
           )}
 
-          <Section eyebrow="Ficha do anúncio" title="Detalhes da publicação">
-            <Card>
-              <DescriptionList
-                items={[
-                  { label: 'Entidade adjudicante', value: orDash(notice.entity_name) },
-                  { label: 'NIF', value: orDash(notice.entity_nif), mono: true },
-                  { label: 'Ato', value: orDash(notice.act_type) },
-                  { label: 'Procedimento', value: orDash(notice.procedure_type) },
-                  { label: 'Diário da República', value: drLine, mono: true },
-                  {
-                    label: 'Data de publicação',
-                    value: formatDate(notice.publication_date),
-                    mono: true,
-                  },
-                  {
-                    label: 'Critérios ambientais',
-                    value:
-                      notice.environmental_criteria == null
-                        ? '—'
-                        : notice.environmental_criteria
-                          ? 'Sim'
-                          : 'Não',
-                  },
-                ]}
-              />
-            </Card>
-          </Section>
+          <NoticeAiEvaluation state={ai} />
+          <NoticeAiObservations state={ai} />
         </div>
 
         <aside className={detail.aside}>

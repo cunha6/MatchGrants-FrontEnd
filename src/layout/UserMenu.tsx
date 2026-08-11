@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
-import { ROLE_LABELS } from '../shared/constants/domain'
+import { ROLE_LABELS_SHORT } from '../shared/constants/domain'
 import { Button } from '../shared/components'
 import { cx } from '../shared/utils/cx'
 import styles from './UserMenu.module.css'
@@ -51,7 +51,7 @@ export function UserMenu() {
         </span>
         <span className={styles.identity}>
           <span className={styles.name}>{user.username}</span>
-          <span className={styles.role}>{ROLE_LABELS[user.role]}</span>
+          <span className={styles.role}>{ROLE_LABELS_SHORT[user.role]}</span>
         </span>
         <span className={cx(styles.chev, open && styles.chevOpen)} aria-hidden="true">
           ›

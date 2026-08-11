@@ -20,6 +20,7 @@ import {
 import {
   ENTITY_SIZE_OPTIONS,
   ENTITY_TYPE_OPTIONS,
+  isStaffRole,
   ROLE_OPTIONS,
 } from '../../../shared/constants/domain'
 import { useApiQuery } from '../../../shared/hooks/useApiQuery'
@@ -30,6 +31,7 @@ import detail from '../../../shared/styles/detail.module.css'
 
 interface FormState {
   username: string
+  first_name: string
   email: string
   role: string
   entity_type: string
@@ -38,13 +40,12 @@ interface FormState {
   main_cae: string
   secondary_cae: string
   address: string
-  region: string
-  nuts_ii: string
-  nuts_iii: string
+  postal_code: string
 }
 
 const EMPTY: FormState = {
   username: '',
+  first_name: '',
   email: '',
   role: 'client',
   entity_type: '',
@@ -53,25 +54,29 @@ const EMPTY: FormState = {
   main_cae: '',
   secondary_cae: '',
   address: '',
-  region: '',
-  nuts_ii: '',
-  nuts_iii: '',
+  postal_code: '',
 }
+
+/** secondary_cae travels the wire as a list; the form edits it as one
+ *  comma-separated field. */
+const caeListToText = (list: string[] | null | undefined): string =>
+  (list ?? []).join(', ')
+const textToCaeList = (text: string): string[] =>
+  text.split(',').map((c) => c.trim()).filter(Boolean)
 
 function fromUser(u: User): FormState {
   return {
     username: u.username ?? '',
+    first_name: u.first_name ?? '',
     email: u.email ?? '',
     role: u.role,
     entity_type: u.entity_type ?? '',
     entity_size: u.entity_size ?? '',
     nif: u.nif ?? '',
     main_cae: u.main_cae ?? '',
-    secondary_cae: u.secondary_cae ?? '',
+    secondary_cae: caeListToText(u.secondary_cae),
     address: u.address ?? '',
-    region: u.region ?? '',
-    nuts_ii: u.nuts_ii ?? '',
-    nuts_iii: u.nuts_iii ?? '',
+    postal_code: u.postal_code ?? '',
   }
 }
 
@@ -88,8 +93,6 @@ export function UserForm({ mode }: { mode: 'create' | 'edit' }) {
   )
 
   const [form, setForm] = useState<FormState>(EMPTY)
-  const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [general, setGeneral] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -102,51 +105,54 @@ export function UserForm({ mode }: { mode: 'create' | 'edit' }) {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
-  const optionalKeys = [
+  /** Entity/location fields — only asked for client/viewer accounts.
+   *  secondary_cae is handled separately since it travels the wire as a
+   *  list, not a plain string like the rest of these. */
+  const entityKeys = [
     'entity_type',
     'entity_size',
     'nif',
     'main_cae',
-    'secondary_cae',
     'address',
-    'region',
-    'nuts_ii',
-    'nuts_iii',
+    'postal_code',
   ] as const
+  const showEntityFields = !isStaffRole(form.role)
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setGeneral(null)
     setErrors({})
 
-    if (mode === 'create') {
-      const next: Record<string, string> = {}
-      if (password.length <= 8)
-        next.password = 'A palavra-passe deve ter mais de 8 caracteres.'
-      if (confirm !== password) next.confirm = 'As palavras-passe não coincidem.'
-      if (Object.keys(next).length) {
-        setErrors(next)
-        return
-      }
-    }
-
     setSubmitting(true)
     try {
       if (mode === 'create') {
+        // Backoffice creation always happens with a session (admin/comercial),
+        // so the API ignores any password and emails the person a link to set
+        // their own — no password is collected or sent here.
         const payload: UserCreatePayload = {
           username: form.username.trim(),
+          first_name: form.first_name.trim(),
           email: form.email.trim(),
-          password,
         }
-        for (const k of optionalKeys) if (form[k]) payload[k] = form[k]
+        if (showEntityFields) {
+          for (const k of entityKeys) if (form[k]) payload[k] = form[k]
+          const caeList = textToCaeList(form.secondary_cae)
+          if (caeList.length) payload.secondary_cae = caeList
+        }
         if (isAdmin) payload.role = form.role as Role
         const created = await createUser(payload)
         navigate(`/users/${created.id}`)
       } else {
         const changes: Record<string, unknown> = {}
         const base = existing ? fromUser(existing) : EMPTY
-        for (const k of ['username', 'email', ...optionalKeys] as (keyof FormState)[]) {
+        const diffKeys: (keyof FormState)[] = showEntityFields
+          ? ['username', 'first_name', 'email', ...entityKeys]
+          : ['username', 'first_name', 'email']
+        for (const k of diffKeys) {
           if (form[k] !== base[k]) changes[k] = form[k]
+        }
+        if (showEntityFields && form.secondary_cae !== base.secondary_cae) {
+          changes.secondary_cae = textToCaeList(form.secondary_cae)
         }
         if (isAdmin && form.role !== base.role) changes.role = form.role
         const updated = await updateUser(userId, changes)
@@ -190,10 +196,32 @@ export function UserForm({ mode }: { mode: 'create' | 'edit' }) {
       <Card>
         <Form onSubmit={onSubmit} noValidate>
           {general && <Alert variant="danger">{general}</Alert>}
+          {mode === 'create' && (
+            <Alert variant="info">
+              A pessoa vai receber um email para definir a password.
+            </Alert>
+          )}
 
           <FormGrid>
+            {isAdmin && (
+              <Select
+                label="Papel"
+                options={ROLE_OPTIONS}
+                value={form.role}
+                onChange={set('role')}
+                error={errors.role}
+              />
+            )}
+
             <Input
-              label="Utilizador"
+              label="Nome"
+              value={form.first_name}
+              onChange={set('first_name')}
+              error={errors.first_name}
+              required
+            />
+            <Input
+              label="Nome Utilizador"
               value={form.username}
               onChange={set('username')}
               error={errors.username}
@@ -208,93 +236,63 @@ export function UserForm({ mode }: { mode: 'create' | 'edit' }) {
               required
             />
 
-            {mode === 'create' && (
+            {showEntityFields && (
               <>
+                <Select
+                  label="Tipo de entidade"
+                  placeholder="Selecionar…"
+                  options={ENTITY_TYPE_OPTIONS}
+                  value={form.entity_type}
+                  onChange={set('entity_type')}
+                  error={errors.entity_type}
+                />
+                <Select
+                  label="Dimensão"
+                  placeholder="Selecionar…"
+                  options={ENTITY_SIZE_OPTIONS}
+                  value={form.entity_size}
+                  onChange={set('entity_size')}
+                  error={errors.entity_size}
+                />
+                <Input label="NIF" value={form.nif} onChange={set('nif')} error={errors.nif} />
                 <Input
-                  label="Palavra-passe"
-                  type="password"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  error={errors.password}
-                  hint="Mais de 8 caracteres, não trivial."
-                  required
+                  label="CAE principal"
+                  value={form.main_cae}
+                  onChange={set('main_cae')}
+                  error={errors.main_cae}
                 />
                 <Input
-                  label="Confirmar palavra-passe"
-                  type="password"
-                  autoComplete="new-password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  error={errors.confirm}
-                  required
+                  label="CAE secundário"
+                  value={form.secondary_cae}
+                  onChange={set('secondary_cae')}
+                  error={errors.secondary_cae}
                 />
+                <Input
+                  label="Morada"
+                  value={form.address}
+                  onChange={set('address')}
+                  error={errors.address}
+                />
+                <Input
+                  label="Código Postal"
+                  value={form.postal_code}
+                  onChange={set('postal_code')}
+                  error={errors.postal_code}
+                />
+                {mode === 'edit' && (existing?.city || existing?.county || existing?.region) && (
+                  <>
+                    <Input
+                      label="Cidade"
+                      value={existing?.city ?? ''}
+                      disabled
+                      hint="Derivado automaticamente do código postal"
+                    />
+                    <Input label="Concelho" value={existing?.county ?? ''} disabled />
+                    <Input label="Região" value={existing?.region ?? ''} disabled />
+                  </>
+                )}
               </>
             )}
-
-            {isAdmin && (
-              <Select
-                label="Papel"
-                options={ROLE_OPTIONS}
-                value={form.role}
-                onChange={set('role')}
-                error={errors.role}
-              />
-            )}
-
-            <Select
-              label="Tipo de entidade"
-              placeholder="Selecionar…"
-              options={ENTITY_TYPE_OPTIONS}
-              value={form.entity_type}
-              onChange={set('entity_type')}
-              error={errors.entity_type}
-            />
-            <Select
-              label="Dimensão"
-              placeholder="Selecionar…"
-              options={ENTITY_SIZE_OPTIONS}
-              value={form.entity_size}
-              onChange={set('entity_size')}
-              error={errors.entity_size}
-            />
-            <Input label="NIF" value={form.nif} onChange={set('nif')} error={errors.nif} />
-            <Input
-              label="CAE principal"
-              value={form.main_cae}
-              onChange={set('main_cae')}
-              error={errors.main_cae}
-            />
-            <Input
-              label="CAE secundário"
-              value={form.secondary_cae}
-              onChange={set('secondary_cae')}
-              error={errors.secondary_cae}
-            />
-            <Input
-              label="Morada"
-              value={form.address}
-              onChange={set('address')}
-              error={errors.address}
-            />
-            <Input
-              label="Região"
-              value={form.region}
-              onChange={set('region')}
-              error={errors.region}
-            />
-            <Input
-              label="NUTS II"
-              value={form.nuts_ii}
-              onChange={set('nuts_ii')}
-              error={errors.nuts_ii}
-            />
-            <Input
-              label="NUTS III"
-              value={form.nuts_iii}
-              onChange={set('nuts_iii')}
-              error={errors.nuts_iii}
-            />
           </FormGrid>
 
           <FormActions>

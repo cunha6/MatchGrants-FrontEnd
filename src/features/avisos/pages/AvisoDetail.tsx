@@ -288,6 +288,11 @@ export function AvisoDetail() {
         ]}
       />
 
+      <p className={detail.aiDisclaimer}>
+        As informações apresentadas foram geradas por Inteligência Artificial e
+        poderão não incluir todos os detalhes relevantes.
+      </p>
+
       {navItems.length > 1 && <SectionNav items={navItems} />}
 
       <div className={detail.cols}>

@@ -11,16 +11,17 @@ interface AuthCardProps {
 }
 
 /** Centered card shell shared by Login and Register. */
-export function AuthCard({ title, subtitle, children, footer, wide }: AuthCardProps) {
+export function AuthCard({ subtitle, children, footer, wide }: AuthCardProps) {
   return (
     <div className={styles.wrap}>
       <div className={styles.card} style={wide ? { maxWidth: 560 } : undefined}>
-        <div className={styles.brand}>
-          <span className={styles.dot} aria-hidden="true" />
-          MatchGrants
+        {/* Centred lockup: the mark needs room to read, and a centred header
+            over a left-aligned form is the familiar sign-in shape. */}
+        <div className={styles.head}>
+          <img className={styles.logo} src="/logo.png" alt="" />
+          <div className={styles.brand}>FundMatch</div>
+          {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
         </div>
-        <h1 className={styles.title}>{title}</h1>
-        {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
         <div className={styles.body}>{children}</div>
         {footer && <div className={styles.footer}>{footer}</div>}
       </div>

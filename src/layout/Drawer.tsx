@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
-import { ROLE_LABELS } from '../shared/constants/domain'
+import { ROLE_LABELS_SHORT } from '../shared/constants/domain'
 import { visibleNavItems } from './navConfig'
 import { Button } from '../shared/components'
 import { cx } from '../shared/utils/cx'
@@ -71,7 +71,7 @@ export function Drawer({ open, onClose }: DrawerProps) {
                 }}
               >
                 <span className={styles.name}>{user.username}</span>
-                <span className={styles.role}>{ROLE_LABELS[user.role]}</span>
+                <span className={styles.role}>{ROLE_LABELS_SHORT[user.role]}</span>
               </button>
               <Button variant="ghost" fullWidth onClick={handleLogout}>
                 Terminar sessão
